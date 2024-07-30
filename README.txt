@@ -7,6 +7,6 @@ MacOS: Sonoma 14.3.0
 
 steps to build and run the files:
 
-1. git clone https://git.math.uzh.ch/reinhard.furrer/j.spasta.2022.100596.git
+1. git clone https://github.com/blasif/j.environ.2024
 2. read 'Download Illustration dataset.txt'
 3. Run 'Run_files.R'
