@@ -1,0 +1,68 @@
+In this file we describe the steps to download the Illustration dataset presented in the Article.
+
+1 - go to https://cds.climate.copernicus.eu/cdsapp#!/dataset/sis-biodiversity-era5-regional?tab=form
+
+2 - Many options are available to download the files:
+
+- For API request please use the following request:
+
+import cdsapi
+
+c = cdsapi.Client()
+
+c.retrieve(
+    'sis-biodiversity-era5-regional',
+    {
+        'region': 'europe',
+        'origin': 'era5',
+        'variable': [
+            'cloud_cover', 'meridional_wind_speed', 'precipitation',
+            'precipitation_seasonality', 'temperature_seasonality', 'wind_speed',
+        ],
+        'derived_variable': 'monthly_mean',
+        'statistic': [
+            'mean', 'median',
+        ],
+        'version': '1.0',
+        'format': 'zip',
+    },
+    'download.zip')
+
+- For Toolbox request use:
+
+import cdstoolbox as ct
+
+@ct.application(title='Download data')
+@ct.output.download()
+def download_application():
+    data = ct.catalogue.retrieve(
+        'sis-biodiversity-era5-regional',
+        {
+            'region': 'europe',
+            'origin': 'era5',
+            'variable': [
+                'cloud_cover', 'meridional_wind_speed', 'precipitation',
+                'precipitation_seasonality', 'temperature_seasonality', 'wind_speed',
+            ],
+            'derived_variable': 'monthly_mean',
+            'statistic': [
+                'mean', 'median',
+            ],
+            'version': '1.0',
+        }
+    )
+    return data
+
+- Via web-browser, please thick:
+
+[Region][Europe]
+[Origin][ERA5]
+[Variable][BIO04,BIO15]
+[Essential climate variables][Precipitation, Cloud cover]
+[Wind indicators][Wind speed, Meridional wind speed]
+[Derived variable][Monthly mean]
+[Statistic][Mean, Median]
+[Version][1.0]
+[Format][.zip]
+
+3 - Place the downloads files in a folder called 'Datasets' within the main folder of the .RProj
