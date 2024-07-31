@@ -160,7 +160,7 @@
       "RemoteUsername": "blasif",
       "RemoteRepo": "cocons",
       "RemoteRef": "main",
-      "RemoteSha": "be5916b29f62485b972317a1a32ccdd70565f3e2",
+      "RemoteSha": "f6d220698e15c19c653d35c545057b44ef289342",
       "Requirements": [
         "BH",
         "R",
@@ -171,7 +171,7 @@
         "optimParallel",
         "spam"
       ],
-      "Hash": "263e4a379a5891c4f432e84c50966e97"
+      "Hash": "81167fea3d8835050b35860777b42803"
     },
     "codetools": {
       "Package": "codetools",
