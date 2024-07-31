@@ -34,7 +34,7 @@ nc_wind_meri <- nc_open(paste0(path, file_wind_meridional), auto_GMT = T)
 wind <- ncvar_get(nc_wind, 'wind-speed')
 
 full_df <- cbind.data.frame(full_df,
-                            'wind' = c(wind[,,1]))
+                            'wind' = c(wind[, , 1]))
 
 rm(wind)
 

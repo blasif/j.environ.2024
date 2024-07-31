@@ -651,174 +651,7 @@ if (T) {
   )
   
   lambda_seq <- seq(0,1,length.out = 50)
-  
-  # Mean misspecified
-  
-  if(T){
-    
-    vector_lambda <- numeric(length = length(lambda_seq))
-    cond_numbers <- numeric(length = length(lambda_seq))
-    log_liks <- numeric(length = length(lambda_seq))
-    RMSPE_vector <- numeric(length = length(lambda_seq))
-    CRPS_vector <- numeric(length = length(lambda_seq))
-    matrix_parameters <- matrix(ncol = 8, nrow = length(lambda_seq))
-    
-    for (ii in 1:length(lambda_seq)) {
-      
-      list_formulas <- list(
-        "mean" = as.formula(" ~ 1"),
-        "std.dev" = as.formula(" ~ 1 + cov_x + cov_y"),
-        "scale" = as.formula(" ~ 1  + cov_x + cov_y"),
-        "aniso" = 0,
-        "tilt" = 0,
-        "smooth" = as.formula(" ~ 1"),
-        "nugget" = -Inf
-      )
-      
-      set.seed(12222)
-      index_training <- sort(sample(650, 250))
-      to_use <- (c(regula_sim[1, index_training]) - mean(c(regula_sim[1, index_training]))) / sd(c(regula_sim[1, index_training]))
-      
-      CoCo_object_ms <- coco(
-        type = "dense",
-        model.list = list_formulas,
-        locs = as.matrix(locs[index_training, ]),
-        z = to_use,
-        data = df_training_mc[index_training, ],
-        info = list(
-          "lambda" = lambda_seq[ii],
-          "smooth_limits" = c(0.5, 3)
-        )
-      )
-      
-      tmp_boundaries <- getBoundaries(CoCo_object_ms, -20, 20)
-      
-      Optim_new <- cocoOptim(
-        coco.object = CoCo_object_ms,
-        ncores = ncores,
-        boundaries = tmp_boundaries,
-        optim.type = "mle"
-      )
-      
-      cond_numbers[ii] <- getCondNumber(Optim_new)
-      log_liks[ii] <- getLoglik(Optim_new)
-      
-      preds_aa <- cocoPredict(Optim_new,
-                              newdataset = df_training_mc[-index_training, ],
-                              newlocs = as.matrix(locs[-index_training, ]),
-                              type = "pred"
-      )
-      
-      to_use_pred <- (c(regula_sim[1, -index_training]) - mean(c(regula_sim[1, index_training]))) / sd(c(regula_sim[1, index_training]))
-      
-      RMSPE_vector[ii] <- sqrt(mean((to_use_pred - (preds_aa$trend + preds_aa$mean))^2))
-      
-      CRPS_vector[ii] <- mean(getCRPS(to_use_pred,mean.pred = preds_aa$trend + preds_aa$mean,sd.pred = preds_aa$sd.pred))
-      
-      matrix_parameters[ii, ] <- unlist(getEstims(Optim_new))[c(1,4:9,16)]
-      
-    }
-    
-    pdf("Figures/bias_ws.pdf", width = master_width, height = master_height)
-    tete <- apply(matrix_parameters, MARGIN = 1, function(x) x - matrix_parameters[1, ]) # 
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    matplot(x = lambda_seq, y = t(tete), type = 'l', lty = c(1, 1, 2, 2, 1, 2, 2, 1),
-            col = c(1,2,5,5,3,5,5,4), 
-            ylab = 'relative bias', xlab = expression(lambda),ylim = c(-2.2,3.25), cex.lab = 1.5, cex.axis = 1.5,lwd=2)
-    legend('topleft', legend = c(expression(beta[0]), 
-                                 expression(alpha[0]), 
-                                 expression(rho[0]), 
-                                 expression(nu[0]), 's.v. coefs.'), lty = c(1, 1, 1),col=c(1,2,3,4,5),cex=1)
-    abline(h = 0, lty = 2, col = 'gray')
-    dev.off()
-    
-    total_squared_bias <- apply(tete, MARGIN = 2, sum)
-    
-    pdf("Figures/regu_spec.pdf", width = master_width, height = master_height)
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    plot(lambda_seq, log_liks / log_liks[1], type = 'l', 
-         xlab = expression(lambda), ylab = 'ratio vs. basal', lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
-         xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i", ylim = c(0, 3))
-    axis(side = 1, cex.axis = 1.5)
-    axis(side = 2, cex.axis = 1.5)
-    lines(lambda_seq, RMSPE_vector / RMSPE_vector[1], col = 'red',lwd = 2)
-    lines(lambda_seq, CRPS_vector / CRPS_vector[1], col = 'magenta',lwd = 2)
-    lines(lambda_seq, cond_numbers / cond_numbers[1], col = 'green',lwd = 2)
-    abline(h = 1, lty = 2, lwd = 2)
-    legend('topleft', legend = c(expression(log[pen]), "RMSPE", "CRPS", "Cond. Number"),
-           lty = c(1, 1, 1, 1), 
-           col = c('black', 'red', 'magenta', 'green')
-    )
-    dev.off()
-    
-    
-    # Prediction metrics under well specified model
-    
-    if(T){
-      pdf("Figures/regu_pred.pdf", width = master_width, height = master_height)
-      master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      plot(lambda_seq, CRPS_vector_cs / CRPS_vector_cs[1], type = 'l', 
-           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
-           xaxt = "n", yaxt = "n",xaxs = "i",yaxs = "i",ylim = c(0.94,1.06))
-      lines(lambda_seq, RMSPE_vector_cs / RMSPE_vector_cs[1], col = 'red',lwd = 2)
-      legend('topleft',legend = c("RMSPE", "CRPS"),
-             lty = c(1, 2, 1, 2), 
-             col = c('black', 'red'), ncol = 1
-      )
-      axis(side = 1, cex.axis = 1.5)
-      axis(side = 2, cex.axis = 1.5)
-      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
-      dev.off()
-    }
-    
-    
-    # Condition Number under well specified model
-    if(T){
-      
-      pdf("Figures/regu_cn.pdf", width = master_width, height = master_height)
-      master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      plot(lambda_seq, cond_numbers_cs / cond_numbers_cs[1], type = 'l', 
-           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
-           xaxt = "n", yaxt = "n",xaxs = "i",yaxs = "i",ylim = c(0,1.05))
-      axis(side = 1, cex.axis = 1.5)
-      axis(side = 2, cex.axis = 1.5)
-      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
-      dev.off()
-    }
-    
-    # Relative bias under well specified model
-    if(T){
-      
-      pdf("Figures/regu_bias.pdf", width = master_width, height = master_height)
-      master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      matplot_plot <- apply(matrix_parameters_cs, MARGIN = 1, function(x) x - matrix_parameters_cs[1, ])
-      matplot(x = lambda_seq, y = t(matplot_plot), type = 'l', lty = c(1,1,1,1,1,1,1,1,1,1),
-              col = c(1,'gray90', 'gray90', 2, 'gray90', 'gray90', 3, 'gray90', 'gray90', 4), xaxs = "i", yaxs = "i",
-              ylab =expression("Change wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), 
-              xlab = expression(lambda), lwd = 2, ylim = c(-1.5,1.2), cex.lab = 1.5, cex.axis = 1.5)
-      legend('topleft', legend = c(expression(beta[0]), 
-                                   expression(alpha[1]), 
-                                   expression(theta[ms * "," * 1]), 
-                                   expression(xi[1]), 
-                                   's.v. coefs.'), lty = c(1, 1, 1, 1, 1),
-             col = c(1, 2, 3, 4, 'gray90'), cex = 1, lwd = 2, ncol = 3)
-      dev.off()
-      master_mars[2] <- master_mars[2] - 0.6
-    }
-    
-  }
-  
+
   # Correctly specified
   
   if(T){
@@ -887,45 +720,69 @@ if (T) {
     }
     
     
-    pdf("Figures/bias_cs.pdf", width = master_width, height = master_height)
-    tete <- apply(matrix_parameters_cs, MARGIN = 1, function(x) x - matrix_parameters_cs[1, ])
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    matplot(x = lambda_seq, y = t(tete), type = 'l', lty = c(1, 2, 2, 1, 2, 2, 1, 2, 2, 1),
-            col = c(1,5,5,2,5,5,3,5,5,4), 
-            ylab = 'relative bias', xlab = expression(lambda), ylim = c(-1.25,1.25), cex.lab = 1.5, cex.axis = 1.5,lwd=2)
-    legend('topleft', legend = c(expression(beta[0]), 
-                                 expression(alpha[0]), 
-                                 expression(rho[0]), 
-                                 expression(nu[0]),
-                                 's.v. coefs.'), lty = c(1, 1, 1),col=c(1,2,3,4,5),cex=1)
-    abline(h = 0, lty = 2, col = 'gray')
-    dev.off()
+    # Prediction metrics under well specified model
     
-    boxplot(t(tete))
+    if(T){
+      pdf("Figures/regu_pred.pdf", width = master_width, height = master_height)
+      master_mars_2 <- master_mars
+      master_mars_2[2] <- master_mars_2[2] + 0.7
+      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
+      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
+      plot(lambda_seq, CRPS_vector_cs / CRPS_vector_cs[1], type = 'l', 
+           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
+           xaxt = "n", yaxt = "n",xaxs = "i", yaxs = "i", ylim = c(0.94, 1.06))
+      lines(lambda_seq, RMSPE_vector_cs / RMSPE_vector_cs[1], col = 'red',lwd = 2)
+      legend('topleft',legend = c("RMSPE", "CRPS"),
+             lty = c(1, 1), 
+             col = c('black', 'red'), ncol = 1
+      )
+      axis(side = 1, cex.axis = 1.5)
+      axis(side = 2, cex.axis = 1.5)
+      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
+      dev.off()
+    }
     
-    total_squared_bias_cs <- apply(tete, MARGIN = 2, sum)
+    # Condition Number under well specified model
+    if(T){
+      
+      pdf("Figures/regu_cn.pdf", width = master_width, height = master_height)
+      master_mars_2 <- master_mars
+      master_mars_2[2] <- master_mars_2[2] + 0.7
+      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
+      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
+      plot(lambda_seq, cond_numbers_cs / cond_numbers_cs[1], type = 'l', 
+           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
+           xaxt = "n", yaxt = "n",xaxs = "i",yaxs = "i",ylim = c(0,1.05))
+      axis(side = 1, cex.axis = 1.5)
+      axis(side = 2, cex.axis = 1.5)
+      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
+      dev.off()
+    }
     
-    pdf("Figures/regu_miss.pdf", width = master_width, height = master_height)
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    plot(lambda_seq, log_liks_cs / log_liks_cs[1], type = 'l', ylim = c(0, 3), 
-         xlab = expression(lambda), ylab = 'ratio vs. basal', lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
-         xaxt = "n", yaxt = "n",xaxs="i",yaxs="i"
-    )
-    axis(side = 1,cex.axis = 1.5)
-    axis(side = 2,cex.axis = 1.5)
-    lines(lambda_seq, RMSPE_vector_cs / RMSPE_vector_cs[1], col = 'red',lwd = 2)
-    lines(lambda_seq, CRPS_vector_cs / CRPS_vector_cs[1], col = 'magenta',lwd = 2)
-    lines(lambda_seq, cond_numbers_cs / cond_numbers_cs[1], col = 'green',lwd = 2)
-    abline(h = 1, lty = 2, lwd = 2)
-    legend('topleft',legend = c(expression(log[pen]), "RMSPE", "CRPS", "Cond. Number"),
-           lty = c(1,1,1,1), 
-           col = c('black','red','magenta','green')
-    )
-    dev.off()
+    # Relative bias under well specified model
+    if(T){
+      
+      pdf("Figures/regu_bias.pdf", width = master_width, height = master_height)
+      master_mars_2 <- master_mars
+      master_mars_2[2] <- master_mars_2[2] + 0.7
+      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
+      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
+      matplot_plot <- apply(matrix_parameters_cs, MARGIN = 1, function(x) x - matrix_parameters_cs[1, ])
+      matplot(x = lambda_seq, y = t(matplot_plot), type = 'l', lty = c(1,1,1,1,1,1,1,1,1,1),
+              col = c(1,'gray90', 'gray90', 2, 'gray90', 'gray90', 3, 'gray90', 'gray90', 4), xaxs = "i", yaxs = "i",
+              ylab =expression("Change wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), 
+              xlab = expression(lambda), lwd = 2, ylim = c(-1.5,1.2), cex.lab = 1.5, cex.axis = 1.5)
+      legend('topleft', legend = c(expression(beta[0]), 
+                                   expression(alpha[1]), 
+                                   expression(theta[ms * "," * 1]), 
+                                   expression(xi[1]), 
+                                   's.v. coefs.'), lty = c(1, 1, 1, 1, 1),
+             col = c(1, 2, 3, 4, 'gray90'), cex = 1, lwd = 2, ncol = 3)
+      dev.off()
+      master_mars[2] <- master_mars[2] - 0.6
+    }
     
-  }
+}
   
 }
 
