@@ -170,9 +170,11 @@ if (T) {
           col = viridis::viridis(length(r_vector))[jj], lwd = 2
         )
       }
-      axis(1, at = c(0, pi / 8, pi / 4, pi / 3, pi / 2), labels = c(0, expression(pi / 8), expression(pi / 4), expression(pi / 3), expression(pi / 2)), cex.lab = 1.5, cex.axis = 1.5)
-      axis(2, at = c(0, pi / 12, pi / 6, pi / 4), labels = c(0, expression(pi / 12), expression(pi / 6), expression(pi / 4)), cex.lab = 1.5, cex.axis = 1.5)
     }
+    
+    axis(1, at = c(0, pi / 8, pi / 4, pi / 3, pi / 2), labels = c(0, expression(pi / 8), expression(pi / 4), expression(pi / 3), expression(pi / 2)), cex.lab = 1.5, cex.axis = 1.5)
+    axis(2, at = c(0, pi / 12, pi / 6, pi / 4), labels = c(0, expression(pi / 12), expression(pi / 6), expression(pi / 4)), cex.lab = 1.5, cex.axis = 1.5)
+    
     
     par(mar = c(4.5, 0, 0.5, 2.5))
     tmp_z <- matrix(1:10, nrow = 1)
@@ -731,6 +733,7 @@ if (T) {
       plot(lambda_seq, CRPS_vector_cs / CRPS_vector_cs[1], type = 'l', 
            xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
            xaxt = "n", yaxt = "n",xaxs = "i", yaxs = "i", ylim = c(0.94, 1.06))
+      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
       lines(lambda_seq, RMSPE_vector_cs / RMSPE_vector_cs[1], col = 'red',lwd = 2)
       legend('topleft',legend = c("RMSPE", "CRPS"),
              lty = c(1, 1), 
@@ -738,7 +741,6 @@ if (T) {
       )
       axis(side = 1, cex.axis = 1.5)
       axis(side = 2, cex.axis = 1.5)
-      abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
       dev.off()
     }
     
@@ -1890,7 +1892,7 @@ if (T) {
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
-         cex = 1, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+         cex = 1, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
     )
     map(add = TRUE, resolution = 0,lwd=2)
     master_mars_second_2 <- master_mars_second
@@ -1925,7 +1927,7 @@ if (T) {
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
-         cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+         cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
     )
     map(add = TRUE, resolution = 0,lwd=2)
     master_mars_second_2 <- master_mars_second
@@ -1960,7 +1962,7 @@ if (T) {
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
-         cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+         cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
     )
     map(add = TRUE, resolution = 0,lwd=2)
     master_mars_second_2 <- master_mars_second
@@ -2004,7 +2006,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2038,7 +2040,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2072,7 +2074,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2119,7 +2121,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2153,7 +2155,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2187,7 +2189,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2233,7 +2235,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2267,7 +2269,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2300,7 +2302,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2347,7 +2349,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2381,7 +2383,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2415,7 +2417,7 @@ if (T) {
            col = tim.colors(128)[cut(point_pred,
                                      breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
            )],
-           cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
       )
       map(add = TRUE, resolution = 0,lwd=2)
       master_mars_second_2 <- master_mars_second
@@ -2451,7 +2453,7 @@ if (T) {
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
-         cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+         cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
     )
     map(add = TRUE, resolution = 0,lwd=2)
     master_mars_second_2 <- master_mars_second
@@ -2485,7 +2487,7 @@ if (T) {
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
-         cex = 0.3, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
+         cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
     )
     map(add = TRUE, resolution = 0,lwd=2)
     master_mars_second_2 <- master_mars_second
