@@ -154,13 +154,8 @@
     "cocons": {
       "Package": "cocons",
       "Version": "0.1.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "blasif",
-      "RemoteRepo": "cocons",
-      "RemoteRef": "main",
-      "RemoteSha": "f6d220698e15c19c653d35c545057b44ef289342",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "BH",
         "R",
@@ -171,7 +166,7 @@
         "optimParallel",
         "spam"
       ],
-      "Hash": "81167fea3d8835050b35860777b42803"
+      "Hash": "a40b2acc194fa6e140cdc8b3c565a40e"
     },
     "codetools": {
       "Package": "codetools",
