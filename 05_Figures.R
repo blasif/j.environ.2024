@@ -53,7 +53,7 @@ if (T) {
       lines(ellipse_points, col = viridis::viridis(n = length(r_vector_sq))[ii], lwd = 2.0)
     }
     
-    legend("bottomright",
+    legend(bty = "n","bottomright",
            legend = c(expression(r^2 ~ "= 0.25", r^2 ~ "= 0.50", r^2 ~ "= 1.00", r^2 ~ "= 2.00")),
            col = viridis::viridis(length(r_vector_sq)), lty = rep(1, length(r_vector_sq)), cex = 1.25
     )
@@ -124,7 +124,7 @@ if (T) {
       lines(ellipse_points, col = viridis::viridis(n = length(alpha_vector))[ii], lwd = 2.0)
     }
     
-    legend("bottomright",
+    legend(bty = "n","bottomright",
            legend = expression(omega ~ "=" ~ pi / 10, omega ~ "=" ~ pi / 6, omega ~ "=" ~ pi / 4, omega ~ "=" ~ pi / 3), col = viridis::viridis(length(alpha_vector)),
            lwd = rep(2, length(alpha_vector)), lty = rep(1, length(alpha_vector)), cex = 1.25
     )
@@ -358,7 +358,7 @@ if (T) {
         lines(ellipse_points, col = viridis::viridis(n = length(alpha_vector))[ii], lwd = 2)
       }
       
-      legend("bottomright",
+      legend(bty = "n","bottomright",
              legend = c(expression(omega ~ "=" ~ pi / 8), expression(omega ~ "=" ~ pi / 3), expression(omega ~ "=" ~ 2 ~ pi / 10)), col = viridis::viridis(length(alpha_vector)),
              lwd = rep(2, length(alpha_vector)), lty = rep(1, length(alpha_vector)), cex = 1.25
       )
@@ -464,7 +464,7 @@ if (T) {
   layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
   plot(df_training_nn$x, df_training_nn$cov_x,
        type = "l", col = "blue", ylim = c(-3.3, 3.3),
-       cex = 0.3, xlab = "x", ylab = "y", pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
+       cex = 0.3, xlab = expression(s), ylab = expression(y), pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
   )
   lines(df_training_nn$x, no_noise_sim, col = "red", lwd = 2)
   axis(4, col = "blue", cex.axis = 1.45)
@@ -475,7 +475,7 @@ if (T) {
   layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
   plot(df_training$x, df_training$cov_x,
        type = "l", col = "blue", ylim = c(-3.3, 3.3),
-       cex = 0.3, xlab = "x", ylab = "y", pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
+       cex = 0.3, xlab = expression(s), ylab = expression(y), pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
   )
   lines(df_training$x, df_training_nn$cov_x, col = "blue", lty = 2, lwd = 2)
   lines(df_training$x, noise_sim, col = "red", lwd = 2)
@@ -571,7 +571,7 @@ if (T) {
   layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
   plot(df_training$x, df_training$cov_x,
        type = "l", col = "blue", ylim = c(-3.3, 3.3),
-       cex = 0.3, xlab = "x", ylab = "y", pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
+       cex = 0.3, xlab = expression(s), ylab = expression(y), pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
   )
   axis(4, cex.lab = 1.5, cex.axis = 1.45, col = "blue")
   lines(df_training$x, one_jump, col = "red", lwd = 2)
@@ -582,7 +582,7 @@ if (T) {
   layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
   plot(df_training_mc$x, df_training_mc$cov_x,
        type = "l", col = "blue", ylim = c(-3.3, 3.3),
-       cex = 0.3, xlab = "x", ylab = "y", pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
+       cex = 0.3, xlab = expression(s), ylab = expression(y), pch = 20, cex.lab = 1.5, cex.axis = 1.45, lwd = 2
   )
   lines(df_training_mc$x, many_jumps_nn, col = "red", lwd = 2)
   axis(4, cex.lab = 1.5, cex.axis = 1.45, col = "blue")
@@ -725,19 +725,19 @@ if (T) {
     # Prediction metrics under well specified model
     
     if(T){
-      pdf("Figures/regu_pred.pdf", width = master_width, height = master_height)
+      pdf("Figures/regu_pred.pdf", width = master_width_large, height = master_height)
       master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
+      master_mars_2[2] <- master_mars_2[2] + 1.9
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       plot(lambda_seq, CRPS_vector_cs / CRPS_vector_cs[1], type = 'l', 
-           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
+           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[ML]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
            xaxt = "n", yaxt = "n",xaxs = "i", yaxs = "i", ylim = c(0.94, 1.06))
       abline(h = 1, lty = 3, lwd = 2, col = 'gray90')
       lines(lambda_seq, RMSPE_vector_cs / RMSPE_vector_cs[1], col = 'red',lwd = 2)
-      legend('topleft',legend = c("RMSPE", "CRPS"),
+      legend(bty = "n",'topleft',legend = c("RMSPE", "CRPS"),
              lty = c(1, 1), 
-             col = c('black', 'red'), ncol = 1
+             col = c('black', 'red'), ncol = 1, cex = 1.25
       )
       axis(side = 1, cex.axis = 1.5)
       axis(side = 2, cex.axis = 1.5)
@@ -747,13 +747,13 @@ if (T) {
     # Condition Number under well specified model
     if(T){
       
-      pdf("Figures/regu_cn.pdf", width = master_width, height = master_height)
+      pdf("Figures/regu_cn.pdf", width = master_width_large, height = master_height)
       master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
+      master_mars_2[2] <- master_mars_2[2] + 1.9
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       plot(lambda_seq, cond_numbers_cs / cond_numbers_cs[1], type = 'l', 
-           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
+           xlab = expression(lambda), ylab = expression("Ratio wrt. " * hat(bold(vartheta))[ML]), lwd = 2, cex.lab = 1.5, cex.axis = 1.5,
            xaxt = "n", yaxt = "n",xaxs = "i",yaxs = "i",ylim = c(0,1.05))
       axis(side = 1, cex.axis = 1.5)
       axis(side = 2, cex.axis = 1.5)
@@ -764,22 +764,22 @@ if (T) {
     # Relative bias under well specified model
     if(T){
       
-      pdf("Figures/regu_bias.pdf", width = master_width, height = master_height)
+      pdf("Figures/regu_bias.pdf", width = master_width_large, height = master_height)
       master_mars_2 <- master_mars
-      master_mars_2[2] <- master_mars_2[2] + 0.7
+      master_mars_2[2] <- master_mars_2[2] + 1.9
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_2)
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       matplot_plot <- apply(matrix_parameters_cs, MARGIN = 1, function(x) x - matrix_parameters_cs[1, ])
       matplot(x = lambda_seq, y = t(matplot_plot), type = 'l', lty = c(1,1,1,1,1,1,1,1,1,1),
               col = c(1,'gray90', 'gray90', 2, 'gray90', 'gray90', 3, 'gray90', 'gray90', 4), xaxs = "i", yaxs = "i",
-              ylab =expression("Change wrt. " * hat(bold(vartheta))[pen *","*lambda==0]), 
+              ylab =expression("Change wrt. " * hat(bold(vartheta))[ML]), 
               xlab = expression(lambda), lwd = 2, ylim = c(-1.5,1.2), cex.lab = 1.5, cex.axis = 1.5)
-      legend('topleft', legend = c(expression(beta[0]), 
+      legend(bty = "n",'topleft', legend = c(expression(beta[0]), 
                                    expression(alpha[1]), 
                                    expression(theta[ms * "," * 1]), 
                                    expression(xi[1]), 
                                    's.v. coefs.'), lty = c(1, 1, 1, 1, 1),
-             col = c(1, 2, 3, 4, 'gray90'), cex = 1, lwd = 2, ncol = 3)
+             col = c(1, 2, 3, 4, 'gray90'), cex = 1.25, lwd = 2, ncol = 3)
       dev.off()
       master_mars[2] <- master_mars[2] - 0.6
     }
@@ -811,7 +811,7 @@ if (T) {
            col = tim.colors(128)[cut(tp_prec,
                                      breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
            )],
-           cex = 0.35, xlab = "Longitude", ylab = "Latitude", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1
+           cex = 0.35, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1
       )
       map(add = TRUE, resolution = 0,lwd=2)
       rect(xleft = 7.029167 - 0.35, ybottom = 46.179167 - 0.35, xright = 7.029167 + 0.35, ytop = 46.179167 + 0.35, border = "blue", lwd = 2, lty = 1)
@@ -821,6 +821,12 @@ if (T) {
       
       rect(xleft = 7.354167 - 0.35, ybottom = 47.10417 - 0.35, xright = 7.354167 + 0.35, ytop = 47.10417 + 0.35, border = "blue", lwd = 2, lty = 1)
       text(x = 7.354167 - 0.3, y = 47.10417 - 0.275, labels = "C", cex = 2)
+      
+      # ref locations
+      
+      points(x = 7.029167, y = 46.179167, pch=23,col='black',cex=2,bg='white')
+      points(x = 9.029167, y = 46.920833, pch=23,col='black',cex=2,bg='white')
+      points(x = 7.354167, y = 47.10417, pch=23,col='black',cex=2,bg='white')
       
       master_mars_second_2 <- master_mars_second
       master_mars_second_2[4] <- 7
@@ -836,8 +842,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_wind.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -862,8 +868,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_cloud.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -888,8 +894,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_elev.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -914,8 +920,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_new_wind.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -940,8 +946,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_BIO04.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -966,8 +972,8 @@ if (T) {
     
     if (T) {
       png("Figures/illu_BIO15.png",
-          width = master_width,
-          height = master_height, res = master_res,
+          width = master_width_large,
+          height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -1025,8 +1031,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/misspecification_se.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1057,8 +1063,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/misspecification_scale.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1089,8 +1095,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/misspecification_trend.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1134,8 +1140,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/reduced_model_se.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1166,8 +1172,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/reduced_model_scale.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1198,8 +1204,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/reduced_model_trend.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1229,8 +1235,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/reduced_smoothness.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1278,8 +1284,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/taper_se.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1310,8 +1316,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/taper_scale.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1342,8 +1348,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/taper_trend.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1374,8 +1380,8 @@ if (T) {
   if (T) {
     png(
       file = "Figures/taper_smoothness.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
       res = master_res
     )
@@ -1434,15 +1440,7 @@ if (T) {
     testt <- getCovMatrix(x)
     
     cor_testt <- cov2cor(testt)
-    
-    if (F) {
-      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1))
-      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
-      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
-    }
-    
+
     y <- Model_D
     
     subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 &
@@ -1461,24 +1459,16 @@ if (T) {
     cor_testt_y <- cov2cor(testt_y)
     
     rm(testt_y)
-    
-    if (F) {
-      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1))
-      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
-      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
-    }
-    
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
+
+    #iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+    #contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
     
     png(
       file = "Figures/corr_dense.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1486,11 +1476,11 @@ if (T) {
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "A", cex = 2)
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
-    contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    contour(elev_info$x, elev_info$y, elev_info$z,nlevels = 6 , add = TRUE)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     map(add = TRUE, resolution = 0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
+    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1,cex=1.5)
     dev.off()
   }
   
@@ -1523,16 +1513,6 @@ if (T) {
     
     index_loc_2 <- 320
     
-    if (F) {
-      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1))
-      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
-      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
-      # contour(elev_info$x,elev_info$y, elev_info$z,add=TRUE)
-      # contour(cor_info$x,cor_info$y, cor_info$z,add=TRUE,col='white',levels = c(0.99, 0.95, 0.9, 0.85, 0.8),lty=2,labcex = 1.1)
-    }
-    
     # Classic
     
     y <- Model_D
@@ -1554,14 +1534,14 @@ if (T) {
     rm(testt_y)
     
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
+    # contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
     
     png(
       file = "Figures/corr_dense_two.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1570,9 +1550,9 @@ if (T) {
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8, 0.75), lty = 1)
+    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8, 0.75), lty = 1,cex=1.5)
     dev.off()
   }
   
@@ -1603,16 +1583,6 @@ if (T) {
     
     cor_testt <- cov2cor(testt)
     
-    if (F) {
-      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1))
-      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
-      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
-      # contour(elev_info$x,elev_info$y, elev_info$z,add=TRUE)
-      # contour(cor_info$x,cor_info$y, cor_info$z,add=TRUE,col='white',levels = c(0.99, 0.95, 0.9, 0.85, 0.8),lty=2,labcex = 1.1)
-    }
-    
     # Classic
     
     y <- Model_D
@@ -1639,10 +1609,10 @@ if (T) {
     
     png(
       file = "Figures/corr_dense_three.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1651,9 +1621,9 @@ if (T) {
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(y@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8, 0.75), lty = 1)
+    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8, 0.75), lty = 1,cex=1.5)
     dev.off()
   }
 }
@@ -1712,10 +1682,10 @@ if(T){
 
     png(
       file = "Figures/T_corr_dense.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1726,7 +1696,7 @@ if(T){
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
     map(add = TRUE, resolution = 0)
     
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
     contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
     dev.off()
@@ -1781,10 +1751,10 @@ if(T){
 
     png(
       file = "Figures/T_corr_dense_two.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1793,7 +1763,7 @@ if(T){
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
     contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
     dev.off()
@@ -1848,10 +1818,10 @@ if(T){
 
     png(
       file = "Figures/T_corr_dense_three.png",
-      width = master_width,
-      height = master_height,
+      width = master_width_large,
+      height = master_height_large,
       units = "in",
-      res = master_res
+      res = master_res * 2
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
@@ -1860,7 +1830,7 @@ if(T){
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "blue", pch = 20)
+    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
     contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
     dev.off()
@@ -1879,7 +1849,7 @@ if (T) {
     df_app <- all_dfs[[2]]
     
     png("Figures/illu_prec_dense_training.png",
-        width = master_width, height = master_height, res = master_res,
+        width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
     )
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -1914,7 +1884,7 @@ if (T) {
     df_app <- all_dfs[[3]]
     
     png("Figures/illu_prec_sparse_training.png",
-        width = master_width, height = master_height, res = master_res,
+        width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
     )
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -1949,7 +1919,7 @@ if (T) {
     df_app <- all_dfs[[1]]
     
     png("Figures/illu_prec_test.png",
-        width = master_width, height = master_height, res = master_res,
+        width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
     )
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -1993,7 +1963,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_dense_M_STAT.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2027,7 +1997,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_dense_M_NS.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2061,7 +2031,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_dense_M_NS_G.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2108,7 +2078,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_pred_dense_M_STAT.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2142,7 +2112,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_dense_M_NS.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2176,7 +2146,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_M_NS_G.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2222,7 +2192,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_sparse_M_STAT_T.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2256,7 +2226,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_sparse_M_NS_T.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2289,7 +2259,7 @@ if (T) {
     if(T){
       
       png("Figures/point_pred_sparse_M_NS_T_G.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2336,7 +2306,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_pred_sparse_M_STAT_T.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2370,7 +2340,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_sparse_M_NS_T.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2404,7 +2374,7 @@ if (T) {
     if(T){
       
       png("Figures/sd_M_NS_T_G.png",
-          width = master_width, height = master_height, res = master_res,
+          width = master_width_large, height = master_height_large, res = master_res,
           units = "in"
       )
       par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2440,7 +2410,7 @@ if (T) {
     df_app <- all_dfs[[3]]
     
     png("Figures/illu_prec_sparse_training.png",
-        width = master_width, height = master_height, res = master_res,
+        width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
     )
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
@@ -2474,7 +2444,7 @@ if (T) {
     df_app <- all_dfs[[1]]
     
     png("Figures/illu_prec_test.png",
-        width = master_width, height = master_height, res = master_res,
+        width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
     )
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)

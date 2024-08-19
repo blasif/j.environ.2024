@@ -25,3 +25,6 @@ master_oma <- c(0, 0, 0, 0)
 master_width <- 3 * 1.5
 master_height <- 3
 master_res <- 150
+
+master_height_large <- 3.5
+master_width_large <- 5
