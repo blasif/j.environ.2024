@@ -1,6 +1,6 @@
 In this file we describe the steps to download the Illustration dataset presented in the Article.
 
-1 - go to https://cds.climate.copernicus.eu/cdsapp#!/dataset/sis-biodiversity-era5-regional?tab=form
+1 - go to https://doi.org/10.24381/cds.fe90a594 and "download" tab.
 
 2 - Many options are available to download the files:
 
