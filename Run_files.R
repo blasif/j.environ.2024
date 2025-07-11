@@ -14,29 +14,23 @@ source('00_system.R')
 
 dir.create('RData')
 
-# Confidence intervals simulation study -----
-
-renv::run('02_IC_Simulation.R')
-
-# LRT simulation study -----
-
-renv::run('03_LRT_Simulation.R')
-
 # Application ------
 
 # Pre-processing
 
-renv::run('04_a_preprocessing.R')
+renv::run('01_a_preprocessing.R')
 
 # Dense scenario
 
-renv::run('04_b_App_Dense.R')
+renv::run('02_a_App_Dense_gridsearch.R')
+renv::run('02_b_App_Dense.R')
 
 # Sparse scenario
 
-renv::run('04_b_App_Sparse.R')
+renv::run('03_a_App_Sparse_gridsearch.R')
+renv::run('03_b_App_Sparse.R')
 
 # Figures
 
 dir.create('Figures')
-renv::run('05_Figures.R')
+renv::run('04_Figures.R')
