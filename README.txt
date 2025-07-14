@@ -3,7 +3,7 @@ R-code of the manuscript "A class of modular and flexible covariate-based covari
 functions for nonstationary spatial modeling",
 The R-code was developed and ran using the following software:
 R-version: 4.3.1
-MacOS: Sonoma 14.3.0
+MacOS: Sequoia 15.5.0
 
 steps to build and run the files:
 

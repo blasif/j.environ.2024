@@ -4,12 +4,12 @@ load('Datasets/app_dataset.RData')
 
 if(T){
   
-  list_formulas <- list("mean" = as.formula("  ~ 1 + wind.1 + new_wind + BIO04 + BIO15 + cloud_c.1 + elevation + lati + long"),
-                        "std.dev" = as.formula("  ~ 1 + BIO04 + BIO15 + log_elevation + log_wind.1 + log_cloud +  log_lati + log_long"),
-                        "scale" = as.formula("  ~ 1 + BIO04 + BIO15 + log_elevation + log_wind.1 + log_cloud + log_lati + log_long"),
+  list_formulas <- list("mean" = as.formula("  ~ 1 + wind + new_wind + BIO04 + BIO15 + cloud_c + elevation + lati + long"),
+                        "std.dev" = as.formula("  ~ 1 + BIO04 + BIO15 + new_wind + log_elevation + log_wind + log_cloud +  log_lati + log_long"),
+                        "scale" = as.formula("  ~ 1 + BIO04 + BIO15 + new_wind + log_elevation + log_wind + log_cloud + log_lati + log_long"),
                         "aniso" = 0,
                         "tilt" = 0,
-                        "smooth" = as.formula("  ~ 1 + BIO04 + BIO15 + log_elevation + log_wind + log_cloud + log_lati + log_long"),
+                        "smooth" = as.formula("  ~ 1 + BIO04 + BIO15 + new_wind + log_elevation + log_wind + log_cloud + log_lati + log_long"),
                         "nugget" = -Inf)
   
   test_coco <- coco(type = 'sparse',
@@ -18,39 +18,65 @@ if(T){
                     z = all_dfs[[3]]$prec,
                     model.list = list_formulas,
                     info = list('taper' = spam::cov.wend2,
-                                'delta.reg' = 0, 
-                                'smooth.limits' = c(0.5, 2.5)))
+                                'smooth.limits' = c(0.5, 2.5),
+                                'delta' = 0.20)
+  )
   
   # Tailored boundaries
   if(T){
     
-    boundaries_B <- getBoundariesV2(coco.object = test_coco_classic,
-                                    mean.limits = c(-1.5, 0, 1.5),
-                                    std.dev.limits = c(-2.5, 0, 2.5),
-                                    scale.limits = c(-2.5, 0, 2.5),
+    tmp_DM <- getDesignMatrix(test_coco@model.list,data = test_coco@data)
+    
+    std_stuff <- getScale(tmp_DM$model.matrix)$std.covs
+    
+    tmp_lm <- lm(z ~ 1 + wind + new_wind + BIO04 + BIO15 + cloud_c + 
+                   elevation + lati + long, data = cbind.data.frame('z' = test_coco@z[,1],
+                                                                    as.data.frame(std_stuff)))
+    
+    coefs_lm <- coef(tmp_lm)
+    
+    boundaries_B <- getBoundariesV2(coco.object = test_coco,
+                                    mean.limits = c(-Inf, 0, Inf),
+                                    std.dev.limits = c(-2, 0, 2),
+                                    scale.limits = c(-2, 0, 2),
                                     aniso.limits =  c(-2, 0, 2),
                                     tilt.limits =  c(-2, 0, 2),
-                                    smooth.limits = c(-2, 0, 1.5),
-                                    nugget.limits = c(-5, -3, 1))
+                                    smooth.limits = c(-2, 0, 2),
+                                    nugget.limits = c(-2, 0, 2))
+    
+    boundaries_B$theta_init[1:length(coefs_lm)] <- coefs_lm
     
     first_var <- which(names(boundaries_B$theta_init) == "std.dev.limits")[1]
+    n_var <- length(which(names(boundaries_B$theta_init) == "std.dev.limits")) - 1
+    
     first_range <- which(names(boundaries_B$theta_init) == "scale.limits")[1]
+    n_range <- length(which(names(boundaries_B$theta_init) == "scale.limits")) - 1
+    
+    first_aniso <- which(names(boundaries_B$theta_init) == "aniso.limits")[1]
+    n_aniso <- length(which(names(boundaries_B$theta_init) == "aniso.limits")) - 1
+    
+    first_tilt <- which(names(boundaries_B$theta_init) == "tilt.limits")[1]
+    n_tilt <- length(which(names(boundaries_B$theta_init) == "tilt.limits")) - 1
+    
     first_smooth <- which(names(boundaries_B$theta_init) == "smooth.limits")[1]
+    n_smooth <- length(which(names(boundaries_B$theta_init) == "smooth.limits")) - 1
     
-    boundaries_B$theta_upper[c(first_var, first_range)] <- c(5, 5)
-    boundaries_B$theta_lower[c(first_var, first_range)] <- c(-5, -1.75)
+    boundaries_B$theta_upper[c(first_var, first_range)] <- c(3, 3)
+    boundaries_B$theta_lower[c(first_var, first_range)] <- c(-3, -3)
     
-    boundaries_B$theta_init[first_range] <- log(sd(c(dist(test_coco_classic@locs))))
+    boundaries_B$theta_init[first_range] <- (log(sd(tmp_lm$residuals)) - log(sd(c(dist(test_coco@locs)))))/2
+    boundaries_B$theta_init[first_var] <- (log(sd(tmp_lm$residuals))  + log(sd(c(dist(test_coco@locs)))))/2
     
     boundaries_B$theta_upper[first_smooth] <- 2
-    boundaries_B$theta_lower[first_smooth] <- -3
-    boundaries_B$theta_init[first_smooth] <- -3
+    boundaries_B$theta_lower[first_smooth] <- -3.5
+    boundaries_B$theta_init[first_smooth] <- 0
     
-    boundaries_B$theta_init[1] <- mean(test_coco_classic@z)
-    boundaries_B$theta_upper[1] <- boundaries_B$theta_init[1] + 1
-    boundaries_B$theta_lower[1] <- boundaries_B$theta_init[1] - 1
+    boundaries_B$theta_init[1] <- coefs_lm[1]
+    boundaries_B$theta_upper[1] <- boundaries_B$theta_init[1] + 5
+    boundaries_B$theta_lower[1] <- boundaries_B$theta_init[1] - 5
     
   }
+  
   
   # Create holdouts
   if(T){
@@ -82,7 +108,7 @@ if(T){
     
     save_results[[ii]] <- list()
     
-    for(jj in 2:3){
+    for(jj in 1:3){
       
       save_results[[ii]][[jj]] <- list()
       
@@ -90,13 +116,15 @@ if(T){
         
         cat("ii:",ii," jj:",jj," zz:",zz, " ")
         
-        test_coco_classic@info$lambda.Sigma <- lambda_Sigma[ii]
-        test_coco_classic@info$lambda.betas <- lambda_betas[jj]
-        test_coco_classic@info$lambda.reg <- lambda_reg[zz]
+        test_coco@info$lambda.Sigma <- lambda_Sigma[ii]
+        test_coco@info$lambda.betas <- lambda_betas[jj]
+        test_coco@info$lambda.reg <- lambda_reg[zz]
         
-        Model_coco <- cocoOptim(coco.object = test_coco_classic,
+        Model_coco <- cocoOptim(coco.object = test_coco,
                                 boundaries = boundaries_B,
-                                optim.type = 'ml')
+                                optim.type = 'ml',
+                                optim.control =  list(control = list(
+                                                    factr = 1e-7/.Machine$double.eps)))
         
         Pred_B <- cocoPredict(coco.object = Model_coco, 
                               newdataset = newdataset_hyper, 
@@ -113,9 +141,9 @@ if(T){
                                                ii,
                                                jj,
                                                zz, 
-                                               test_coco_classic@info$lambda.Sigma,
-                                               test_coco_classic@info$lambda.betas ,
-                                               test_coco_classic@info$lambda.reg)
+                                               test_coco@info$lambda.Sigma,
+                                               test_coco@info$lambda.betas ,
+                                               test_coco@info$lambda.reg)
         
       }
     }
@@ -149,14 +177,14 @@ if(T){
   Model_T_A@info$lambda.betas <- 0
   Model_T_A@info$lambda.Sigma <- 0
   
-  Time_T_A <- system.time(cocoOptim(coco.object = Model_A,
-                                  boundaries = Model_A@info$boundaries,
+  Time_T_A <- system.time(cocoOptim(coco.object = Model_T_A,
+                                  boundaries = Model_T_A@info$boundaries,
                                   optim.type = 'ml'))[3]
   
   Model_T_A@info$lambda.betas <- to_stack$lambda_betas[index_best]
   Model_T_A@info$lambda.Sigma <- to_stack$lambda_Sigma[index_best]
   
-  HESS_A <- getHessian(Model_T_A)
+  HESS_T_A <- getHessian(Model_T_A)
   
   save(Time_T_A, Model_T_A, HESS_T_A, file = 'RData/Model_T_A.RData')
   

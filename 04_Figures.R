@@ -550,7 +550,7 @@ if (T) {
   )
   
   many_jumps_nn <- cocoSim(CoCo_object_nn,
-                              pars = c(0, log(0.25), 3, log(2.5)), seed = 181222 * 2,
+                              pars = c(0, log(0.25), 3), seed = 181222 * 2,
                               standardize = FALSE
   )
   
@@ -667,7 +667,7 @@ if (T) {
       
       set.seed(12222)
       index_training <- sort(sample(650, 250))
-      to_use <- (c(regula_sim[1, index_training]) - mean(c(regula_sim[1, index_training]))) / sd(c(regula_sim[1, index_training]))
+      to_use <- (c(regula_sim[index_training,1]) - mean(c(regula_sim[index_training,1]))) / sd(c(regula_sim[index_training,1]))
       
       CoCo_object_ms <- coco(
         type = "dense",
@@ -676,8 +676,8 @@ if (T) {
         z = to_use,
         data = df_training_mc[index_training, ],
         info = list(
-          "lambda" = lambda_seq[ii],
-          "smooth_limits" = c(0.5, 3)
+          "lambda.reg" = lambda_seq[ii],
+          "smooth.limits" = c(0.5, 3)
         )
       )
       
@@ -687,10 +687,10 @@ if (T) {
         coco.object = CoCo_object_ms,
         ncores = ncores,
         boundaries = tmp_boundaries,
-        optim.type = "mle"
+        optim.type = "ml"
       )
       
-      cond_numbers_cs[ii] <- getCondNumber(Optim_new)
+      cond_numbers_cs[ii] <- kappa(cov2cor(getCovMatrix(Optim_new)),exact = TRUE)
       log_liks_cs[ii] <- getLoglik(Optim_new)
       
       preds_aa <- cocoPredict(Optim_new,
@@ -699,16 +699,15 @@ if (T) {
                               type = "pred"
       )
       
-      to_use_pred <- (c(regula_sim[1, -index_training]) - mean(c(regula_sim[1, index_training]))) / sd(c(regula_sim[1, index_training]))
+      to_use_pred <- (c(regula_sim[-index_training]) - mean(c(regula_sim[index_training]))) / sd(c(regula_sim[index_training]))
       
-      RMSPE_vector_cs[ii] <- sqrt(mean((to_use_pred - (preds_aa$trend + preds_aa$mean))^2))
+      RMSPE_vector_cs[ii] <- sqrt(mean((to_use_pred - (preds_aa$systematic + preds_aa$stochastic))^2))
       
-      CRPS_vector_cs[ii] <- mean(getCRPS(to_use_pred,mean.pred = preds_aa$trend + preds_aa$mean,sd.pred = preds_aa$sd.pred))
+      CRPS_vector_cs[ii] <- mean(getCRPS(to_use_pred, mean.pred = preds_aa$systematic + preds_aa$stochastic, sd.pred = preds_aa$sd.pred))
       
       matrix_parameters_cs[ii, ] <- unlist(getEstims(Optim_new))[c(1:3,4:9,16)]
       
     }
-    
     
     # Prediction metrics under well specified model
     
@@ -991,9 +990,9 @@ if (T) {
 # Reduced dense
 if (T) {
   
-  load("RData/Model_C.RData")
+  load("RData/Model_B.RData")
   
-  x <- Model_C
+  x <- Model_A
   
   x@data <- all_dfs[[4]]
   x@locs <- as.matrix(all_dfs[[4]][, 1:2])
@@ -1064,8 +1063,10 @@ if (T) {
     dev.off()
   }
   
-  # residuals
+  # Mean
+  
   if (T) {
+    
     png(
       file = "Figures/reduced_model_trend.png",
       width = master_width_large,
@@ -1075,13 +1076,16 @@ if (T) {
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
+    
     layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
     
-    plot(Model_C@locs[, 1], Model_C@locs[, 2],
-         col = tim.colors(128)[cut(Model_C@z - getTrend(Model_C),
-                                   breaks = seq(min(Model_C@z - getTrend(Model_C)), max(Model_C@z - getTrend(Model_C)), length.out = 128), labels = F
+    spat_mean <- getSpatMean(x)
+    
+    plot(x@locs[, 1], x@locs[, 2],
+         col = tim.colors(128)[cut(spat_mean,
+                                   breaks = seq(min(spat_mean), max(spat_mean), length.out = 128), labels = F
          )],
-         cex = 0.5, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 1.5, cex.lab = 1.5,
+         cex = 0.2, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 1.5, cex.lab = 1.5,
          asp = 1.5
     )
     map(add = TRUE, resolution = 0)
@@ -1089,45 +1093,13 @@ if (T) {
     
     tmp_z <- matrix(1:100, nrow = 1)
     tmp_x <- 1
-    tmp_y <- seq(min(Model_C@z - getTrend(Model_C)), max(Model_C@z - getTrend(Model_C)), len = 100)
+    tmp_y <- seq(min(spat_mean), max(spat_mean), len = 100)
     image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
     axis(4, lwd = 2, cex.axis = 1.5)
     dev.off()
+    
   }
   
-  # Smoothness
-  if (T) {
-    png(
-      file = "Figures/reduced_smoothness.png",
-      width = master_width_large,
-      height = master_height_large,
-      units = "in",
-      res = master_res
-    )
-    
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-     
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    
-    plot(x@locs[, 1], x@locs[, 2],
-         col = tim.colors(128)[cut(spat_effects_c$smooth,
-                                   breaks = seq(min(spat_effects_c$smooth),
-                                                max(spat_effects_c$smooth),
-                                                length.out = 128
-                                   ), labels = F
-         )],
-         cex = 0.2, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 1.5, cex.lab = 1.5
-    )
-    map(add = TRUE, resolution = 0)
-    par(mar = master_mars_second)
-    
-    tmp_z <- matrix(1:100, nrow = 1)
-    tmp_x <- 1
-    tmp_y <- seq(min(spat_effects_c$smooth), max(spat_effects_c$smooth), len = 100)
-    image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-    axis(4, lwd = 2, cex.axis = 1.5)
-    dev.off()
-  }
 }
 
 # Taper
@@ -1208,8 +1180,8 @@ if (T) {
     dev.off()
   }
   
-  # residuals
   if (T) {
+    
     png(
       file = "Figures/taper_trend.png",
       width = master_width_large,
@@ -1219,12 +1191,14 @@ if (T) {
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-     
+    
     layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
     
-    plot(Model_T_A@locs[, 1], Model_T_A@locs[, 2],
-         col = tim.colors(128)[cut(Model_T_A@z - getTrend(Model_T_A),
-                                   breaks = seq(min(Model_T_A@z - getTrend(Model_T_A)), max(Model_T_A@z - getTrend(Model_T_A)), length.out = 128), labels = F
+    spat_mean <- getSpatMean(x)
+    
+    plot(x@locs[, 1], x@locs[, 2],
+         col = tim.colors(128)[cut(spat_mean,
+                                   breaks = seq(min(spat_mean), max(spat_mean), length.out = 128), labels = F
          )],
          cex = 0.2, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 1.5, cex.lab = 1.5,
          asp = 1.5
@@ -1234,45 +1208,13 @@ if (T) {
     
     tmp_z <- matrix(1:100, nrow = 1)
     tmp_x <- 1
-    tmp_y <- seq(min(Model_T_A@z - getTrend(Model_T_A)), max(Model_T_A@z - getTrend(Model_T_A)), len = 100)
+    tmp_y <- seq(min(spat_mean), max(spat_mean), len = 100)
     image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
     axis(4, lwd = 2, cex.axis = 1.5)
     dev.off()
+    
   }
   
-  # Smoothness
-  if (T) {
-    png(
-      file = "Figures/taper_smoothness.png",
-      width = master_width_large,
-      height = master_height_large,
-      units = "in",
-      res = master_res
-    )
-    
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-     
-    layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-    
-    plot(x@locs[, 1], x@locs[, 2],
-         col = tim.colors(128)[cut(spat_effects_c$smooth,
-                                   breaks = seq(min(spat_effects_c$smooth),
-                                                max(spat_effects_c$smooth),
-                                                length.out = 128
-                                   ), labels = F
-         )],
-         cex = 0.2, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 1.5, cex.lab = 1.5
-    )
-    map(add = TRUE, resolution = 0)
-    par(mar = master_mars_second)
-    
-    tmp_z <- matrix(1:100, nrow = 1)
-    tmp_x <- 1
-    tmp_y <- seq(min(spat_effects_c$smooth), max(spat_effects_c$smooth), len = 100)
-    image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-    axis(4, lwd = 2, cex.axis = 1.5)
-    dev.off()
-  }
 }
 
 # Correlation plots - Dense model
@@ -1281,18 +1223,19 @@ if (T) {
   
   # A
   if (T) {
-    load("RData/Model_C.RData")
-    load("RData/Model_D.RData")
+    load("RData/Model_A.RData")
     
-    x <- Model_C
+    load("RData/Model_B.RData")
+    
+    x <- Model_A
     
     ref_loc <- c(7.029167, 46.179167)
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 &
-                           all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 &
+                           all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    x@locs <- as.matrix(all_dfs[[4]][subset_plot, c('long','lati')])
     
     index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
     
@@ -1304,14 +1247,15 @@ if (T) {
     testt <- getCovMatrix(x)
     
     cor_testt <- cov2cor(testt)
-
-    y <- Model_D
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 &
-                           all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    y <- Model_B
+    
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 &
+                           all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    
+    y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
     
     tmp_info <- cocons::getDesignMatrix(
       model.list = y@model.list,
@@ -1323,7 +1267,7 @@ if (T) {
     cor_testt_y <- cov2cor(testt_y)
     
     rm(testt_y)
-
+    
     #iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
     #contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.99, 0.95, 0.9, 0.85, 0.8), lty = 1)
     
@@ -1336,9 +1280,9 @@ if (T) {
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "A", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
+    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z,nlevels = 6 , add = TRUE)
     points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
@@ -1349,20 +1293,22 @@ if (T) {
   }
   
   # B
+  
   if (T) {
-    load("RData/Model_C.RData")
-    load("RData/Model_D.RData")
+    load("RData/Model_A.RData")
     
-    x <- Model_C
+    load("RData/Model_B.RData")
+    
+    x <- Model_A
     
     ref_loc <- c(9.029167, 46.920833)
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     # subset_plot <- which(all_dfs[[4]][,1] < 9.2 & all_dfs[[4]][,1] > 8.6 & all_dfs[[4]][,2] < 47.5 & all_dfs[[4]][,2] > 46,75)
     
     x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    x@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
     
     index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
     
@@ -1379,12 +1325,12 @@ if (T) {
     
     # Classic
     
-    y <- Model_D
+    y <- Model_B
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
     
     tmp_info <- cocons::getDesignMatrix(
       model.list = y@model.list,
@@ -1409,9 +1355,9 @@ if (T) {
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "B", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
+    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
     points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
@@ -1422,19 +1368,21 @@ if (T) {
   
   # C
   if (T) {
-    load("RData/Model_C.RData")
-    load("RData/Model_D.RData")
     
-    x <- Model_C
+    load("RData/Model_A.RData")
+    
+    load("RData/Model_B.RData")
+    
+    x <- Model_A
     
     ref_loc <- c(7.354167, 47.10417)
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     # subset_plot <- which(all_dfs[[4]][,1] < 9.2 & all_dfs[[4]][,1] > 8.6 & all_dfs[[4]][,2] < 47.5 & all_dfs[[4]][,2] > 46,75)
     
     x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    x@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
     
     index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
     
@@ -1451,10 +1399,10 @@ if (T) {
     
     y <- Model_D
     
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
+    subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
     y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
+    y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
     
     tmp_info <- cocons::getDesignMatrix(
       model.list = y@model.list,
@@ -1480,9 +1428,9 @@ if (T) {
     )
     
     par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "C", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.75, 1), plot = FALSE)
+    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), plot = FALSE)
     elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
     points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
@@ -1494,218 +1442,245 @@ if (T) {
 
 # Correlation plots - Sparse model
 
-if(T){
-  
-  # A
-  if (T) {
+  if(T){
     
-    load("RData/Model_T_A.RData")
-    load("RData/Model_T_B.RData")
+    # A
+    if (T) {
+      
+      load("RData/Model_T_A.RData")
+      
+      load("RData/Model_T_B.RData")
+      
+      x <- Model_T_A
+      
+      ref_loc <- c(7.029167, 46.179167)
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      x@data <- all_dfs[[4]][subset_plot, ]
+      x@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = x@model.list,
+        data = x@data
+      )
+      
+      testt <- getCovMatrix(x)
+      
+      cor_testt <- cov2cor(as.matrix(testt))
+      
+      # Classic
+      
+      y <- Model_T_B
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      y@data <- all_dfs[[4]][subset_plot, ]
+      y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = y@model.list,
+        data = y@data
+      )
+      
+      testt_y <- getCovMatrix(y)
+      
+      cor_testt_y <- cov2cor(as.matrix(testt_y))
+      
+      rm(testt_y)
+      
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      
+      png(
+        file = "Figures/T_corr_dense.png",
+        width = master_width_large,
+        height = master_height_large,
+        units = "in",
+        res = master_res * 2
+      )
+      
+      par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
+      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+      text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "A", cex = 2)
+      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
+      elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
+      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
+      map(add = TRUE, resolution = 0)
+      
+      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
+      dev.off()
+    }
     
-    x <- Model_T_A
+    # B
+    if (T) {
+      
+      load("RData/Model_T_A.RData")
+      
+      load("RData/Model_T_B.RData")
+      
+      x <- Model_T_A
+      
+      ref_loc <- c(9.029167, 46.920833)
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      x@data <- all_dfs[[4]][subset_plot, ]
+      x@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = x@model.list,
+        data = x@data
+      )
+      
+      testt <- getCovMatrix(x)
+      
+      cor_testt <- cov2cor(as.matrix(testt))
+      
+      # Classic
+      
+      y <- Model_T_B
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      y@data <- all_dfs[[4]][subset_plot, ]
+      y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = y@model.list,
+        data = y@data
+      )
+      
+      testt_y <- getCovMatrix(y)
+      
+      cor_testt_y <- cov2cor(as.matrix(testt_y))
+      
+      rm(testt_y)
+      
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      
+      png(
+        file = "Figures/T_corr_dense_two.png",
+        width = master_width_large,
+        height = master_height_large,
+        units = "in",
+        res = master_res * 2
+      )
+      
+      par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
+      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+      text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "B", cex = 2)
+      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
+      elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
+      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
+      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
+      dev.off()
+    }
     
-    ref_loc <- c(7.029167, 46.179167)
-    
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = x@model.list,
-      data = x@data
-    )
-    
-    testt <- getCovMatrix(x)
-    
-    cor_testt <- cov2cor(testt)
-    
-    # Classic
-    
-    y <- Model_T_B
-
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = y@model.list,
-      data = y@data
-    )
-    
-    testt_y <- getCovMatrix(y)
-    
-    cor_testt_y <- cov2cor(testt_y)
-    
-    rm(testt_y)
-    
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-
-    png(
-      file = "Figures/T_corr_dense.png",
-      width = master_width_large,
-      height = master_height_large,
-      units = "in",
-      res = master_res * 2
-    )
-    
-    par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
-    text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "A", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
-    elev_info <- quilt.plot(x@locs, x@data$elevation, nx = 84, ny = 72, plot = FALSE)
-    contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    map(add = TRUE, resolution = 0)
-    
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
-    dev.off()
+    # C
+    if (T) {
+      
+      load("RData/Model_T_A.RData")
+      load("RData/Model_T_B.RData")
+      
+      x <- Model_T_A
+      
+      ref_loc <- c(7.354167, 47.10417)
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      x@data <- all_dfs[[4]][subset_plot, ]
+      x@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = x@model.list,
+        data = x@data
+      )
+      
+      testt <- getCovMatrix(x)
+      
+      cor_testt <- cov2cor(as.matrix(testt))
+      
+      # Classic
+      
+      y <- Model_T_B
+      
+      subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
+      
+      y@data <- all_dfs[[4]][subset_plot, ]
+      y@locs <- as.matrix(all_dfs[[4]][subset_plot, c("long","lati")])
+      
+      tmp_info <- cocons::getDesignMatrix(
+        model.list = y@model.list,
+        data = y@data
+      )
+      
+      testt_y <- getCovMatrix(y)
+      
+      cor_testt_y <- cov2cor(as.matrix(testt_y))
+      
+      rm(testt_y)
+      
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      
+      png(
+        file = "Figures/T_corr_dense_three.png",
+        width = master_width_large,
+        height = master_height_large,
+        units = "in",
+        res = master_res * 2
+      )
+      
+      par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
+      quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
+      text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "C", cex = 2)
+      cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
+      elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
+      contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
+      points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
+      iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
+      contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
+      dev.off()
+    }
   }
-  
-  # B
-  if (T) {
-    load("RData/Model_T_A.RData")
-    load("RData/Model_T_B.RData")
-    
-    x <- Model_T_A
-    
-    ref_loc <- c(9.029167, 46.920833)
-    
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = x@model.list,
-      data = x@data
-    )
-    
-    testt <- getCovMatrix(x)
-    
-    cor_testt <- cov2cor(testt)
-    
-    # Classic
-    
-    y <- Model_T_B
-    
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = y@model.list,
-      data = y@data
-    )
-    
-    testt_y <- getCovMatrix(y)
-    
-    cor_testt_y <- cov2cor(testt_y)
-    
-    rm(testt_y)
-    
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-
-    png(
-      file = "Figures/T_corr_dense_two.png",
-      width = master_width_large,
-      height = master_height_large,
-      units = "in",
-      res = master_res * 2
-    )
-    
-    par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
-    text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "B", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
-    elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
-    contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
-    dev.off()
-  }
-  
-  # C
-  if (T) {
-    load("RData/Model_T_A.RData")
-    load("RData/Model_T_B.RData")
-    
-    x <- Model_T_A
-    
-    ref_loc <- c(7.354167, 47.10417)
-    
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    x@data <- all_dfs[[4]][subset_plot, ]
-    x@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    index_loc <- which.min(as.matrix(nearest.dist(x@locs, matrix(ref_loc, ncol = 2))))
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = x@model.list,
-      data = x@data
-    )
-    
-    testt <- getCovMatrix(x)
-    
-    cor_testt <- cov2cor(testt)
-    
-    # Classic
-    
-    y <- Model_T_B
- 
-    subset_plot <- which(all_dfs[[4]][, 1] < ref_loc[1] + 0.35 & all_dfs[[4]][, 1] > ref_loc[1] - 0.35 & all_dfs[[4]][, 2] < ref_loc[2] + 0.3 & all_dfs[[4]][, 2] > ref_loc[2] - 0.3)
-    
-    y@data <- all_dfs[[4]][subset_plot, ]
-    y@locs <- as.matrix(all_dfs[[4]][subset_plot, 1:2])
-    
-    tmp_info <- cocons::getDesignMatrix(
-      model.list = y@model.list,
-      data = y@data
-    )
-    
-    testt_y <- getCovMatrix(y)
-    
-    cor_testt_y <- cov2cor(testt_y)
-    
-    rm(testt_y)
-    
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-
-    png(
-      file = "Figures/T_corr_dense_three.png",
-      width = master_width_large,
-      height = master_height_large,
-      units = "in",
-      res = master_res * 2
-    )
-    
-    par(mfrow = c(1, 1), oma = master_oma, mar = c(4.05, 4, 0.5, 0.5))
-    quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
-    text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "C", cex = 2)
-    cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
-    elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
-    contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
-    points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
-    iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
-    contour(iso_info$x, iso_info$y, iso_info$z, add = TRUE, col = "white", levels = c(0.9, 0.7, 0.4, 0.2), lty = 1)
-    dev.off()
-  }
-}
-
 # Appendix 
 
 if (T) {
   
   # Datasets
+  
+  # Create holdouts
+  if(T){
+    
+    newdataset <- all_dfs[[1]]
+    newlocs <- all_dfs[[1]][ ,c("long","lati")]
+    z_values <- all_dfs[[1]]$prec
+    
+    set.seed(100621)
+    hetero_holdouts <- kmeans(as.data.frame(scale(newdataset[,c(1,2,4:9)])),centers = 100,iter.max = 100)
+    groups <- as.factor(hetero_holdouts$cluster)
+    quilt.plot(newlocs, hetero_holdouts$cluster, nx = 150, ny = 150)
+    
+    sample_to_tune_hyperparameters <- sample(1:100, 30)
+    
+    newdataset_final <- newdataset[!(groups %in% sample_to_tune_hyperparameters),]
+    newlocs_final <- as.matrix(newdataset[!(groups %in% sample_to_tune_hyperparameters), c("long","lati")])
+    z_values_final <- all_dfs[[1]]$prec[!(groups %in% sample_to_tune_hyperparameters)]
+    
+    final_groups <- c(1:100)[!(c(1:100) %in% sample_to_tune_hyperparameters)]
+    
+    obs_groups_final <- groups[groups %in% final_groups]
+    
+  }  
   
   # Training dense Precipitation
   if(T){
@@ -1722,7 +1697,7 @@ if (T) {
     
     tp_prec <- df_app$prec
     
-    plot(df_app[, 1], df_app[, 2],
+    plot(df_app[, "long"], df_app[, "lati"],
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
@@ -1757,7 +1732,7 @@ if (T) {
     
     tp_prec <- df_app$prec
     
-    plot(df_app[, 1], df_app[, 2],
+    plot(df_app[, "long"], df_app[, "lati"],
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
@@ -1782,6 +1757,8 @@ if (T) {
     
     df_app <- all_dfs[[1]]
     
+    df_app <- newdataset_final
+    
     png("Figures/illu_prec_test.png",
         width = master_width_large, height = master_height_large, res = master_res,
         units = "in"
@@ -1792,7 +1769,7 @@ if (T) {
     
     tp_prec <- df_app$prec
     
-    plot(df_app[, 1], df_app[, 2],
+    plot(df_app[, "long"], df_app[, "lati"],
          col = tim.colors(128)[cut(tp_prec,
                                    breaks = seq(min(tp_prec), max(tp_prec), length.out = 128), labels = F
          )],
@@ -1818,9 +1795,8 @@ if (T) {
     
     load('RData/Pred_dense.RData')
     
-    unique_boundaries <- range(c(Pred_C$trend + Pred_C$mean,
-                                 Pred_D$trend + Pred_D$mean,
-                                 Pred_E$trend + Pred_E$mean)
+    unique_boundaries <- range(c(Pred_A$systematic + Pred_A$stochastic,
+                                 Pred_B$systematic + Pred_B$stochastic)
     )
     
     # M_STAT
@@ -1834,7 +1810,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_D$trend + Pred_D$mean
+      point_pred <- Pred_B$systematic + Pred_B$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1868,41 +1844,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_C$trend + Pred_C$mean
-      
-      plot(df_app[, 1], df_app[, 2],
-           col = tim.colors(128)[cut(point_pred,
-                                     breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
-           )],
-           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
-      )
-      map(add = TRUE, resolution = 0,lwd=2)
-      master_mars_second_2 <- master_mars_second
-      master_mars_second_2[4] <- 2
-      par(mar = master_mars_second_2)
-      
-      tmp_z <- matrix(1:100, nrow = 1)
-      tmp_x <- 1
-      tmp_y <- seq(unique_boundaries[1], unique_boundaries[2], len = 100)
-      image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-      axis(4, lwd = 2, cex.axis = 2)
-      dev.off()
-      
-      
-    }
-    
-    # M_NS_G
-    if(T){
-      
-      png("Figures/point_pred_dense_M_NS_G.png",
-          width = master_width_large, height = master_height_large, res = master_res,
-          units = "in"
-      )
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-      
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      
-      point_pred <- Pred_E$trend + Pred_E$mean
+      point_pred <- Pred_A$systematic + Pred_A$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1933,9 +1875,8 @@ if (T) {
     
     load('RData/Pred_dense.RData')
     
-    unique_boundaries <- range(c(Pred_C$sd.pred,
-                                 Pred_D$sd.pred,
-                                 Pred_E$sd.pred)
+    unique_boundaries <- range(c(Pred_A$sd.pred,
+                                 Pred_B$sd.pred)
     )
     
     # M_STAT
@@ -1949,7 +1890,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_D$sd.pred
+      point_pred <- Pred_B$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1983,7 +1924,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_C$sd.pred
+      point_pred <- Pred_A$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2003,39 +1944,6 @@ if (T) {
       axis(4, lwd = 2, cex.axis = 2)
       dev.off()
       
-      
-    }
-    
-    # M_NS_G
-    if(T){
-      
-      png("Figures/sd_M_NS_G.png",
-          width = master_width_large, height = master_height_large, res = master_res,
-          units = "in"
-      )
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-      
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      
-      point_pred <- Pred_E$sd.pred
-      
-      plot(df_app[, 1], df_app[, 2],
-           col = tim.colors(128)[cut(point_pred,
-                                     breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
-           )],
-           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
-      )
-      map(add = TRUE, resolution = 0,lwd=2)
-      master_mars_second_2 <- master_mars_second
-      master_mars_second_2[4] <- 2
-      par(mar = master_mars_second_2)
-      
-      tmp_z <- matrix(1:100, nrow = 1)
-      tmp_x <- 1
-      tmp_y <- seq(unique_boundaries[1], unique_boundaries[2], len = 100)
-      image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-      axis(4, lwd = 2, cex.axis = 2)
-      dev.off()
       
     }
     
@@ -2047,9 +1955,8 @@ if (T) {
     
     load('RData/Pred_Taper.RData')
     
-    unique_boundaries <- range(c(Pred_Model_T_A$trend + Pred_Model_T_A$mean,
-                                 Pred_Model_T_B$trend + Pred_Model_T_B$mean,
-                                 Pred_Model_T_C$trend + Pred_Model_T_C$mean)
+    unique_boundaries <- range(c(Pred_T_A$systematic + Pred_T_A$stochastic,
+                                 Pred_T_B$systematic + Pred_T_B$stochastic)
     )
     
     # M_STAT_T
@@ -2063,7 +1970,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_Model_T_B$trend + Pred_Model_T_B$mean
+      point_pred <- Pred_T_B$systematic + Pred_T_B$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2097,7 +2004,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_Model_T_A$trend + Pred_Model_T_A$mean
+      point_pred <- Pred_T_A$systematic + Pred_T_A$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2116,40 +2023,6 @@ if (T) {
       image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
       axis(4, lwd = 2, cex.axis = 2)
       dev.off()
-      
-    }
-    
-    # M_NS_T_G
-    if(T){
-      
-      png("Figures/point_pred_sparse_M_NS_T_G.png",
-          width = master_width_large, height = master_height_large, res = master_res,
-          units = "in"
-      )
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-      
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      
-      point_pred <- Pred_Model_T_C$trend + Pred_Model_T_C$mean
-      
-      plot(df_app[, 1], df_app[, 2],
-           col = tim.colors(128)[cut(point_pred,
-                                     breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
-           )],
-           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
-      )
-      map(add = TRUE, resolution = 0,lwd=2)
-      master_mars_second_2 <- master_mars_second
-      master_mars_second_2[4] <- 2
-      par(mar = master_mars_second_2)
-      
-      tmp_z <- matrix(1:100, nrow = 1)
-      tmp_x <- 1
-      tmp_y <- seq(unique_boundaries[1], unique_boundaries[2], len = 100)
-      image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-      axis(4, lwd = 2, cex.axis = 2)
-      dev.off()
-      
       
     }
     
@@ -2161,9 +2034,8 @@ if (T) {
     
     load('RData/Pred_Taper.RData')
     
-    unique_boundaries <- range(c(Pred_Model_T_A$sd.pred,
-                                 Pred_Model_T_B$sd.pred,
-                                 Pred_Model_T_C$sd.pred)
+    unique_boundaries <- range(c(Pred_T_A$sd.pred,
+                                 Pred_T_B$sd.pred)
     )
     
     # M_STAT_T
@@ -2177,7 +2049,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_Model_T_B$sd.pred
+      point_pred <- Pred_T_B$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2196,7 +2068,6 @@ if (T) {
       image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
       axis(4, lwd = 2, cex.axis = 2)
       dev.off()
-      
       
     }
     
@@ -2211,7 +2082,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_Model_T_A$sd.pred
+      point_pred <- Pred_T_A$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2231,39 +2102,6 @@ if (T) {
       axis(4, lwd = 2, cex.axis = 2)
       dev.off()
       
-      
-    }
-    
-    # M_NS_G
-    if(T){
-      
-      png("Figures/sd_M_NS_T_G.png",
-          width = master_width_large, height = master_height_large, res = master_res,
-          units = "in"
-      )
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-      
-      layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
-      
-      point_pred <- Pred_Model_T_C$sd.pred
-      
-      plot(df_app[, 1], df_app[, 2],
-           col = tim.colors(128)[cut(point_pred,
-                                     breaks = seq(unique_boundaries[1], unique_boundaries[2], length.out = 128), labels = F
-           )],
-           cex = 0.3, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1.5
-      )
-      map(add = TRUE, resolution = 0,lwd=2)
-      master_mars_second_2 <- master_mars_second
-      master_mars_second_2[4] <- 2
-      par(mar = master_mars_second_2)
-      
-      tmp_z <- matrix(1:100, nrow = 1)
-      tmp_x <- 1
-      tmp_y <- seq(unique_boundaries[1], unique_boundaries[2], len = 100)
-      image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-      axis(4, lwd = 2, cex.axis = 2)
-      dev.off()
       
     }
     
@@ -2305,7 +2143,7 @@ if (T) {
   
   if(T){
     
-    df_app <- all_dfs[[1]]
+    df_app <- newdataset_final
     
     png("Figures/illu_prec_test.png",
         width = master_width_large, height = master_height_large, res = master_res,
