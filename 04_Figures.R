@@ -788,7 +788,11 @@ if (T) {
           width = master_width * 3, height = master_height * 2, res = master_res,
           units = "in"
       )
-      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
+      
+      master_mars_temp <- master_mars
+      
+      master_mars_temp[2] <- master_mars_temp[2] + 0.8
+      par(mfrow = c(1, 1), oma = master_oma, mar = master_mars_temp)
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
@@ -801,19 +805,19 @@ if (T) {
            cex = 0.35, xlab = "Longitude (°)", ylab = "Latitude (°)", pch = 20, cex.axis = 2, cex.lab = 2, asp = 1
       )
       map(add = TRUE, resolution = 0,lwd=2)
-      rect(xleft = 7.029167 - 0.35, ybottom = 46.179167 - 0.35, xright = 7.029167 + 0.35, ytop = 46.179167 + 0.35, border = "blue", lwd = 2, lty = 1)
-      text(x = 7.029167 - 0.3, y = 46.179167 - 0.275, labels = "A", cex = 2)
+      rect(xleft = 7.9626 - 0.35, ybottom = 46.5368 - 0.35, xright = 7.9626 + 0.35, ytop = 46.5368 + 0.35, border = "blue", lwd = 2, lty = 1)
+      text(x = 7.9626 - 0.3, y = 46.5368 - 0.275, labels = "A", cex = 2)
       rect(xleft = 9.029167 - 0.35, ybottom = 46.920833 - 0.35, xright = 9.029167 + 0.35, ytop = 46.920833 + 0.35, border = "blue", lwd = 2, lty = 1)
       text(x = 9.029167 - 0.3, y = 46.920833 - 0.275, labels = "B", cex = 2)
       
-      rect(xleft = 7.354167 - 0.35, ybottom = 47.10417 - 0.35, xright = 7.354167 + 0.35, ytop = 47.10417 + 0.35, border = "blue", lwd = 2, lty = 1)
-      text(x = 7.354167 - 0.3, y = 47.10417 - 0.275, labels = "C", cex = 2)
+      rect(xleft = 7.174167 - 0.35, ybottom = 46.917 - 0.35, xright = 7.174167 + 0.35, ytop = 46.917 + 0.35, border = "blue", lwd = 2, lty = 1)
+      text(x = 7.174167 - 0.3, y = 46.917 - 0.275, labels = "C", cex = 2)
       
       # ref locations
       
-      points(x = 7.029167, y = 46.179167, pch=23,col='black',cex=2,bg='white')
+      points(x = 7.9626, y = 46.5368, pch=23,col='black',cex=2,bg='white')
       points(x = 9.029167, y = 46.920833, pch=23,col='black',cex=2,bg='white')
-      points(x = 7.354167, y = 47.10417, pch=23,col='black',cex=2,bg='white')
+      points(x = 7.174167, y = 46.917, pch=23,col='black',cex=2,bg='white')
       
       master_mars_second_2 <- master_mars_second
       master_mars_second_2[4] <- 7
@@ -990,9 +994,9 @@ if (T) {
 # Reduced dense
 if (T) {
   
-  load("RData/Model_B.RData")
+  load("RData/Model_NS.RData")
   
-  x <- Model_A
+  x <- Model_NS
   
   x@data <- all_dfs[[4]]
   x@locs <- as.matrix(all_dfs[[4]][, 1:2])
@@ -1001,6 +1005,7 @@ if (T) {
   
   # Sd
   if (T) {
+    
     png(
       file = "Figures/reduced_model_se.png",
       width = master_width_large,
@@ -1009,7 +1014,9 @@ if (T) {
       res = master_res
     )
     
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
+    temp_master_mars <- master_mars
+    temp_master_mars[2] <- temp_master_mars[2] + 0.5
+    par(mfrow = c(1, 1), oma = master_oma, mar = temp_master_mars)
      
     layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
     
@@ -1027,7 +1034,7 @@ if (T) {
     tmp_x <- 1
     tmp_y <- seq(min(spat_effects_c$sd), max(spat_effects_c$sd), len = 100)
     image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-    axis(4, lwd = 2, cex.axis = 1.5)
+    axis(4, lwd = 2, cex.axis = 1.5,at = c(0.75, 1.25, 1.80, 2.30))
     dev.off()
   }
   
@@ -1041,8 +1048,10 @@ if (T) {
       res = master_res
     )
     
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-     
+    temp_master_mars <- master_mars
+    temp_master_mars[2] <- temp_master_mars[2] + 0.5
+    par(mfrow = c(1, 1), oma = master_oma, mar = temp_master_mars)
+    
     layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
     
     plot(x@locs[, 1], x@locs[, 2],
@@ -1059,7 +1068,7 @@ if (T) {
     tmp_x <- 1
     tmp_y <- seq(min(spat_effects_c$scale_x), max(spat_effects_c$scale_x), len = 100)
     image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-    axis(4, lwd = 2, cex.axis = 1.5)
+    axis(4, lwd = 2, cex.axis = 1.5, at = c(1.6,2.1,2.7,3.3))
     dev.off()
   }
   
@@ -1105,15 +1114,13 @@ if (T) {
 # Taper
 if (T) {
   
-  load("RData/Model_T_A.RData")
+  load("RData/Model_T_NS.RData")
   
-  x <- Model_T_A
+  x <- Model_T_NS
   
   x@data <- all_dfs[[4]]
   x@locs <- as.matrix(all_dfs[[4]][, 1:2])
-  x@type <- "sparse"
-  names(x@model.list)[2] <- "std.dev"
-  
+
   spat_effects_c <- getSpatEffects(x)
   
   # se
@@ -1126,8 +1133,10 @@ if (T) {
       res = master_res
     )
     
-    par(mfrow = c(1, 1), oma = master_oma, mar = master_mars)
-     
+    temp_master_mars <- master_mars
+    temp_master_mars[2] <- temp_master_mars[2] + 0.5
+    par(mfrow = c(1, 1), oma = master_oma, mar = temp_master_mars)    
+    
     layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
     
     plot(x@locs[, 1], x@locs[, 2],
@@ -1144,7 +1153,7 @@ if (T) {
     tmp_x <- 1
     tmp_y <- seq(min(spat_effects_c$sd), max(spat_effects_c$sd), len = 100)
     image(tmp_x, tmp_y, tmp_z, col = tim.colors(128), axes = FALSE, xlab = "", ylab = "")
-    axis(4, lwd = 2, cex.axis = 1.5)
+    axis(4, lwd = 2, cex.axis = 1.5, at = c(0.05,0.1,0.15,0.2,0.24))
     dev.off()
   }
   
@@ -1223,13 +1232,13 @@ if (T) {
   
   # A
   if (T) {
-    load("RData/Model_A.RData")
+    load("RData/Model_NS.RData")
     
-    load("RData/Model_B.RData")
+    load("RData/Model_STAT.RData")
     
-    x <- Model_A
+    x <- Model_NS
     
-    ref_loc <- c(7.029167, 46.179167)
+    ref_loc <- c(7.9626, 46.5368)
     
     subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 &
                            all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
@@ -1248,7 +1257,7 @@ if (T) {
     
     cor_testt <- cov2cor(testt)
     
-    y <- Model_B
+    y <- Model_STAT
     
     subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 &
                            all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
@@ -1295,11 +1304,11 @@ if (T) {
   # B
   
   if (T) {
-    load("RData/Model_A.RData")
+    load("RData/Model_NS.RData")
     
-    load("RData/Model_B.RData")
+    load("RData/Model_STAT.RData")
     
-    x <- Model_A
+    x <- Model_NS
     
     ref_loc <- c(9.029167, 46.920833)
     
@@ -1325,7 +1334,7 @@ if (T) {
     
     # Classic
     
-    y <- Model_B
+    y <- Model_STAT
     
     subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
@@ -1358,7 +1367,7 @@ if (T) {
     quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "B", cex = 2)
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), plot = FALSE)
-    elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
+    elev_info <- quilt.plot(x@locs, x@data$new_wind, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
     points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
@@ -1369,13 +1378,13 @@ if (T) {
   # C
   if (T) {
     
-    load("RData/Model_A.RData")
+    load("RData/Model_NS.RData")
     
-    load("RData/Model_B.RData")
+    load("RData/Model_STAT.RData")
     
-    x <- Model_A
+    x <- Model_NS
     
-    ref_loc <- c(7.354167, 47.10417)
+    ref_loc <- c(7.174167, 46.917)
     
     subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
@@ -1397,7 +1406,7 @@ if (T) {
     
     # Classic
     
-    y <- Model_D
+    y <- Model_STAT
     
     subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
     
@@ -1431,7 +1440,7 @@ if (T) {
     quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
     text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "C", cex = 2)
     cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.8, 1), plot = FALSE)
-    elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
+    elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
     contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
     points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
     iso_info <- quilt.plot(y@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
@@ -1447,13 +1456,13 @@ if (T) {
     # A
     if (T) {
       
-      load("RData/Model_T_A.RData")
+      load("RData/Model_T_NS.RData")
       
-      load("RData/Model_T_B.RData")
+      load("RData/Model_T_STAT.RData")
       
-      x <- Model_T_A
+      x <- Model_T_NS
       
-      ref_loc <- c(7.029167, 46.179167)
+      ref_loc <- c(7.9626, 46.5368)
       
       subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
       
@@ -1473,7 +1482,7 @@ if (T) {
       
       # Classic
       
-      y <- Model_T_B
+      y <- Model_T_STAT
       
       subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
       
@@ -1518,11 +1527,11 @@ if (T) {
     # B
     if (T) {
       
-      load("RData/Model_T_A.RData")
+      load("RData/Model_T_NS.RData")
       
-      load("RData/Model_T_B.RData")
+      load("RData/Model_T_STAT.RData")
       
-      x <- Model_T_A
+      x <- Model_T_NS
       
       ref_loc <- c(9.029167, 46.920833)
       
@@ -1544,7 +1553,7 @@ if (T) {
       
       # Classic
       
-      y <- Model_T_B
+      y <- Model_T_STAT
       
       subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
       
@@ -1576,7 +1585,7 @@ if (T) {
       quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
       text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "B", cex = 2)
       cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
+      elev_info <- quilt.plot(x@locs, x@data$new_wind, nx = 84, ny = 72, plot = FALSE)
       contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
       points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
       iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
@@ -1587,12 +1596,12 @@ if (T) {
     # C
     if (T) {
       
-      load("RData/Model_T_A.RData")
-      load("RData/Model_T_B.RData")
+      load("RData/Model_T_NS.RData")
+      load("RData/Model_T_STAT.RData")
       
-      x <- Model_T_A
+      x <- Model_T_NS
       
-      ref_loc <- c(7.354167, 47.10417)
+      ref_loc <- c(7.174167, 46.917)
       
       subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
       
@@ -1612,7 +1621,7 @@ if (T) {
       
       # Classic
       
-      y <- Model_T_B
+      y <- Model_T_STAT
       
       subset_plot <- which(all_dfs[[4]][, "long"] < ref_loc[1] + 0.35 & all_dfs[[4]][, "long"] > ref_loc[1] - 0.35 & all_dfs[[4]][, "lati"] < ref_loc[2] + 0.3 & all_dfs[[4]][, "lati"] > ref_loc[2] - 0.3)
       
@@ -1644,7 +1653,7 @@ if (T) {
       quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), xlab = "Longitude (°)", ylab = "Latitude (°)")
       text(x = min(x@locs[, 1]) + 0.05, y = min(x@locs[, 2]) + 0.05, labels = "C", cex = 2)
       cor_info <- quilt.plot(x@locs, cor_testt[index_loc, ], nx = 84, ny = 72, zlim = c(0.05, 1), plot = FALSE)
-      elev_info <- quilt.plot(x@locs, x@data$wind, nx = 84, ny = 72, plot = FALSE)
+      elev_info <- quilt.plot(x@locs, x@data$cloud_c, nx = 84, ny = 72, plot = FALSE)
       contour(elev_info$x, elev_info$y, elev_info$z, add = TRUE)
       points(x@locs[index_loc, 1], x@locs[index_loc, 2], col = "white", pch = 18,cex=1.0)
       iso_info <- quilt.plot(x@locs, cor_testt_y[index_loc, ], nx = 84, ny = 72, plot = FALSE)
@@ -1652,6 +1661,7 @@ if (T) {
       dev.off()
     }
   }
+
 # Appendix 
 
 if (T) {
@@ -1755,8 +1765,6 @@ if (T) {
   # Test Precipitation
   if(T){
     
-    df_app <- all_dfs[[1]]
-    
     df_app <- newdataset_final
     
     png("Figures/illu_prec_test.png",
@@ -1795,8 +1803,8 @@ if (T) {
     
     load('RData/Pred_dense.RData')
     
-    unique_boundaries <- range(c(Pred_A$systematic + Pred_A$stochastic,
-                                 Pred_B$systematic + Pred_B$stochastic)
+    unique_boundaries <- range(c(Pred_NS$systematic + Pred_NS$stochastic,
+                                 Pred_STAT$systematic + Pred_STAT$stochastic)
     )
     
     # M_STAT
@@ -1810,7 +1818,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_B$systematic + Pred_B$stochastic
+      point_pred <- Pred_STAT$systematic + Pred_STAT$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1844,7 +1852,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_A$systematic + Pred_A$stochastic
+      point_pred <- Pred_NS$systematic + Pred_NS$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1875,8 +1883,8 @@ if (T) {
     
     load('RData/Pred_dense.RData')
     
-    unique_boundaries <- range(c(Pred_A$sd.pred,
-                                 Pred_B$sd.pred)
+    unique_boundaries <- range(c(Pred_NS$sd.pred,
+                                 Pred_STAT$sd.pred)
     )
     
     # M_STAT
@@ -1890,7 +1898,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_B$sd.pred
+      point_pred <- Pred_STAT$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1924,7 +1932,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_A$sd.pred
+      point_pred <- Pred_NS$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1955,8 +1963,8 @@ if (T) {
     
     load('RData/Pred_Taper.RData')
     
-    unique_boundaries <- range(c(Pred_T_A$systematic + Pred_T_A$stochastic,
-                                 Pred_T_B$systematic + Pred_T_B$stochastic)
+    unique_boundaries <- range(c(Pred_T_NS$systematic + Pred_T_STAT$stochastic,
+                                 Pred_T_NS$systematic + Pred_T_STAT$stochastic)
     )
     
     # M_STAT_T
@@ -1970,7 +1978,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_T_B$systematic + Pred_T_B$stochastic
+      point_pred <- Pred_T_STAT$systematic + Pred_T_STAT$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -1993,7 +2001,7 @@ if (T) {
       
     }
     
-    # M_NS_T
+    # M_T_NS
     if(T){
       
       png("Figures/point_pred_sparse_M_NS_T.png",
@@ -2004,7 +2012,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_T_A$systematic + Pred_T_A$stochastic
+      point_pred <- Pred_T_NS$systematic + Pred_T_NS$stochastic
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2034,8 +2042,8 @@ if (T) {
     
     load('RData/Pred_Taper.RData')
     
-    unique_boundaries <- range(c(Pred_T_A$sd.pred,
-                                 Pred_T_B$sd.pred)
+    unique_boundaries <- range(c(Pred_T_NS$sd.pred,
+                                 Pred_T_STAT$sd.pred)
     )
     
     # M_STAT_T
@@ -2049,7 +2057,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_T_B$sd.pred
+      point_pred <- Pred_T_STAT$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,
@@ -2082,7 +2090,7 @@ if (T) {
       
       layout(matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2), nrow = 1))
       
-      point_pred <- Pred_T_A$sd.pred
+      point_pred <- Pred_T_NS$sd.pred
       
       plot(df_app[, 1], df_app[, 2],
            col = tim.colors(128)[cut(point_pred,

@@ -103,7 +103,7 @@ if(T){
   
   save_results <- list()
   
-  for(ii in 1:3){
+  for(ii in 3:3){
     
     save_results[[ii]] <- list()
     
@@ -167,22 +167,22 @@ if(T){
   
   index_best <- which.min(to_stack$CRPS)
   
-  Model_A <- save_results[[ to_stack$ii[index_best] ]][[to_stack$jj[index_best] ]][[ to_stack$zz[index_best] ]][[1]]
+  Model_NS <- save_results[[ to_stack$ii[index_best] ]][[to_stack$jj[index_best] ]][[ to_stack$zz[index_best] ]][[1]]
   
   # Compute time simplified model
   
-  Model_A@info$lambda.betas <- 0
-  Model_A@info$lambda.Sigma <- 0
+  Model_NS@info$lambda.betas <- 0
+  Model_NS@info$lambda.Sigma <- 0
   
-  Time_A <- system.time(cocoOptim(coco.object = Model_A,
-                          boundaries = Model_A@info$boundaries,
-                          optim.type = 'ml'))[3]
+  Time_NS <- system.time(cocoOptim(coco.object = Model_NS,
+                          boundaries = Model_NS@info$boundaries,
+                          optim.type = 'ml', ncores = 7))[3]
   
-  Model_A@info$lambda.betas <- to_stack$lambda_betas[index_best]
-  Model_A@info$lambda.Sigma <- to_stack$lambda_Sigma[index_best]
+  Model_NS@info$lambda.betas <- to_stack$lambda_betas[index_best]
+  Model_NS@info$lambda.Sigma <- to_stack$lambda_Sigma[index_best]
   
-  HESS_A <- getHessian(Model_A)
+  HESS_NS <- getHessian(Model_NS)
   
-  save(Time_A, Model_A, HESS_A, file = 'RData/Model_A.RData')
+  save(Time_NS, Model_NS, HESS_NS, file = 'RData/Model_NS.RData')
   
 }

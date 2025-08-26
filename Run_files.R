@@ -8,7 +8,9 @@ if(!("renv" %in% installed.packages()[,1])){
   install.packages('renv')
 } # maybe a session restart will be needed 
 
-renv::rebuild()
+renv::activate()                
+renv::restore(prompt = FALSE) 
+
 system('Rscript --version') # !
 source('00_system.R')
 
@@ -18,7 +20,7 @@ dir.create('RData')
 
 # Pre-processing
 
-renv::run('01_a_preprocessing.R')
+renv::run('01_preprocessing.R')
 
 # Dense scenario
 

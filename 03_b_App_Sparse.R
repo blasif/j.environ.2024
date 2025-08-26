@@ -40,24 +40,23 @@ if(T){
     
   }
   
-  Time_T_B <- system.time({ Model_T_B <- cocoOptim(coco.object = OT_classic,
-                                                    ncores = "auto",
+  Time_T_STAT <- system.time({ Model_T_STAT <- cocoOptim(coco.object = OT_classic,
+                                                    ncores = 7,
                                                     optim.type = 'ml',
                                                     boundaries = boundaries_B,
-                                                    optim.control = list(control = list(trace = 5,
-                                                                                       factr = 1e-7/.Machine$double.eps)))})
+                                                    optim.control = list(control = list(factr = 1e-7/.Machine$double.eps)))})
   
-  save(Model_T_B, Time_T_B, file = 'RData/Model_T_B.RData')
+  save(Model_T_STAT, Time_T_STAT, file = 'RData/Model_T_STAT.RData')
   
 }
 
 # Predictions
 if(T){
   
-  load('RData/Model_T_A.Rdata')
+  load('RData/Model_T_NS.Rdata')
   
   newdataset <- all_dfs[[1]]
-  newlocs <- all_dfs[[1]][,1:2]
+  newlocs <- all_dfs[[1]][, 1:2]
   
   z_values <- all_dfs[[1]]$prec
   
@@ -85,31 +84,31 @@ if(T){
     
   }
   
-  load("RData/Model_T_A.RData")
+  load('RData/Model_T_NS.Rdata')
   
-  Pred_T_A <- cocoPredict(coco.object = Model_T_A, 
+  Pred_T_NS <- cocoPredict(coco.object = Model_T_NS, 
                                 newdataset = newdataset_final, 
                                 newlocs = newlocs_final,
                                 type = 'pred')
   
-  Pred_T_B <- cocoPredict(coco.object = Model_T_B, 
+  Pred_T_STAT <- cocoPredict(coco.object = Model_T_STAT, 
                                 newdataset = newdataset_final, 
                                 newlocs = newlocs_final,
                                 type = 'pred')
 
-  CRPS_T_A <- getCRPS(z_values_final, mean.pred = Pred_T_A$systematic + Pred_A$stochastic, sd.pred = Pred_T_A$sd.pred)
-  CRPS_T_B <- getCRPS(z_values_final, mean.pred = Pred_T_B$systematic + Pred_T_B$stochastic, sd.pred = Pred_T_B$sd.pred)
+  CRPS_T_NS <- getCRPS(z_values_final, mean.pred = Pred_T_NS$systematic + Pred_T_NS$stochastic, sd.pred = Pred_T_NS$sd.pred)
+  CRPS_T_STAT <- getCRPS(z_values_final, mean.pred = Pred_T_STAT$systematic + Pred_T_STAT$stochastic, sd.pred = Pred_T_STAT$sd.pred)
   
-  Logscore_T_A <- getLogScore(z_values_final, mean.pred = Pred_T_A$systematic + Pred_T_A$stochastic, sd.pred = Pred_T_A$sd.pred)
-  Logscore_T_B <- getLogScore(z_values_final, mean.pred = Pred_T_B$systematic + Pred_T_B$stochastic, sd.pred = Pred_T_B$sd.pred)
+  Logscore_T_NS <- getLogScore(z_values_final, mean.pred = Pred_T_NS$systematic + Pred_T_NS$stochastic, sd.pred = Pred_T_NS$sd.pred)
+  Logscore_T_STAT <- getLogScore(z_values_final, mean.pred = Pred_T_STAT$systematic + Pred_T_STAT$stochastic, sd.pred = Pred_T_STAT$sd.pred)
   
-  z_std_T_A <- (Pred_T_A$systematic + Pred_T_A$stochastic - z_values_final) / Pred_T_A$sd.pred
-  z_std_T_B <- (Pred_T_B$systematic + Pred_T_B$stochastic - z_values_final) / Pred_T_B$sd.pred
+  z_std_T_NS <- (Pred_T_NS$systematic + Pred_T_NS$stochastic - z_values_final) / Pred_T_NS$sd.pred
+  z_std_T_STAT <- (Pred_T_STAT$systematic + Pred_T_STAT$stochastic - z_values_final) / Pred_T_STAT$sd.pred
   
-  save(Pred_T_A, Pred_T_B,
-       CRPS_T_A, CRPS_T_B, 
-       Logscore_T_A, Logscore_T_B,
-       z_std_T_A, z_std_T_B,
+  save(Pred_T_NS, Pred_T_STAT,
+       CRPS_T_NS, CRPS_T_STAT, 
+       Logscore_T_NS, Logscore_T_STAT,
+       z_std_T_NS, z_std_T_STAT,
        file = 'RData/Pred_Taper.RData')
   
 }
@@ -124,31 +123,25 @@ if(T){
   
   if(T){
     
-    RMSPE_T_A <- numeric(70)
+    RMSPE_T_NS <- numeric(70)
     
     for(ii in 1:70){
       index_groups <- obs_groups_final == final_groups[ii]
-      RMSPE_T_A[ii] <- sqrt(mean((Pred_T_A$systematic[index_groups] + Pred_T_A$stochastic[index_groups] - z_values_final[index_groups])^2))
+      RMSPE_T_NS[ii] <- sqrt(mean((Pred_T_NS$systematic[index_groups] + Pred_T_NS$stochastic[index_groups] - z_values_final[index_groups])^2))
     }
-    
-    mean(RMSPE_T_A)
-    sd(RMSPE_T_A)
-    
-    RMSPE_T_B <- numeric(70)
+
+    RMSPE_T_STAT <- numeric(70)
     
     for(ii in 1:70){
       index_groups <- obs_groups_final == final_groups[ii]
-      RMSPE_T_B[ii] <- sqrt(mean((Pred_T_B$systematic[index_groups] + Pred_T_B$stochastic[index_groups] - z_values_final[index_groups])^2))
+      RMSPE_T_STAT[ii] <- sqrt(mean((Pred_T_STAT$systematic[index_groups] + Pred_T_STAT$stochastic[index_groups] - z_values_final[index_groups])^2))
     }
-    
-    mean(RMSPE_T_B)
-    sd(RMSPE_T_B)
-    
-    matrix_to_show <- t(round(cbind(c(mean(RMSPE_T_B),mean(RMSPE_T_A)),
-                                    c(sd(RMSPE_T_B),sd(RMSPE_T_A))),2))
+
+    matrix_to_show <- t(round(cbind(c(mean(RMSPE_T_STAT),mean(RMSPE_T_NS)),
+                                    c(sd(RMSPE_T_STAT),sd(RMSPE_T_NS))),3))
     
     rownames(matrix_to_show) <- c('mean','se')
-    colnames(matrix_to_show) <- c('M-STAT','M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT','M-T-NS')
     
     cat('RMSPE\n')
     print(matrix_to_show)
@@ -160,29 +153,23 @@ if(T){
   
   if(T){
     
-    CRPS_T_A_holdout <- numeric(70)
+    CRPS_T_NS_holdout <- numeric(70)
     
     for(ii in 1:70){
-      CRPS_T_A_holdout[ii] <- mean(CRPS_T_A[obs_groups_final == final_groups[ii]])
+      CRPS_T_NS_holdout[ii] <- mean(CRPS_T_NS[obs_groups_final == final_groups[ii]])
     }
-    
-    mean(CRPS_T_A_holdout)
-    sd(CRPS_T_A_holdout)
-    
-    CRPS_T_B_holdout <- numeric(70)
+
+    CRPS_T_STAT_holdout <- numeric(70)
     
     for(ii in 1:70){
-      CRPS_T_B_holdout[ii] <- mean(CRPS_T_B[obs_groups_final == final_groups[ii]])
+      CRPS_T_STAT_holdout[ii] <- mean(CRPS_T_STAT[obs_groups_final == final_groups[ii]])
     }
-    
-    mean(CRPS_T_B_holdout)
-    sd(CRPS_T_B_holdout)
-    
-    matrix_to_show <- t(round(cbind(c(mean(CRPS_T_B_holdout),mean(CRPS_T_A_holdout)),
-                                    c(sd(CRPS_T_B_holdout),sd(CRPS_T_A_holdout))), 3))
+
+    matrix_to_show <- t(round(cbind(c(mean(CRPS_T_STAT_holdout),mean(CRPS_T_NS_holdout)),
+                                    c(sd(CRPS_T_STAT_holdout),sd(CRPS_T_NS_holdout))), 3))
     
     rownames(matrix_to_show) <- c('mean','se')
-    colnames(matrix_to_show) <- c('M-STAT','M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT','M-T-NS')
     
     cat('CRPS\n')
     print(matrix_to_show)
@@ -194,26 +181,23 @@ if(T){
   
   if(T){
     
-    Q_CRPS_T_A <- numeric(70)
+    Q_CRPS_T_NS <- numeric(70)
     
     for(ii in 1:70){
-      Q_CRPS_T_A[ii] <- quantile(CRPS_T_A[obs_groups_final == final_groups[ii]], probs = 0.95)
+      Q_CRPS_T_NS[ii] <- quantile(CRPS_T_NS[obs_groups_final == final_groups[ii]], probs = 0.95)
     }
-    
-    mean(Q_CRPS_T_A)
-    sd(Q_CRPS_T_A)
-    
-    Q_CRPS_T_B <- numeric(70)
+  
+    Q_CRPS_T_STAT <- numeric(70)
     
     for(ii in 1:70){
-      Q_CRPS_T_B[ii] <- quantile(CRPS_T_B[obs_groups_final == final_groups[ii]],probs = 0.95)
+      Q_CRPS_T_STAT[ii] <- quantile(CRPS_T_STAT[obs_groups_final == final_groups[ii]],probs = 0.95)
     }
     
-    mean(Q_CRPS_T_B)
-    sd(Q_CRPS_T_B)
+    matrix_to_show <- t(round(cbind(c(mean(Q_CRPS_T_STAT),mean(Q_CRPS_T_NS)),
+                                    c(sd(Q_CRPS_T_STAT),sd(Q_CRPS_T_NS))), 3))
     
     rownames(matrix_to_show) <- c('mean','se')
-    colnames(matrix_to_show) <- c('M-STAT','M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT','M-T-NS')
     
     cat('0.95 Quantile CRPS\n')
     print(matrix_to_show)
@@ -225,30 +209,24 @@ if(T){
   
   if(T){
     
-    KS_T_A <- numeric(70)
+    KS_T_NS <- numeric(70)
     
     for(ii in 1:70){
-      KS_T_A[ii] <- ks.test(z_std_T_A[obs_groups_final == final_groups[ii]],y = pnorm)$statistic
+      KS_T_NS[ii] <- ks.test(z_std_T_NS[obs_groups_final == final_groups[ii]],y = pnorm)$statistic
     }
-    
-    mean(KS_T_A)
-    sd(KS_T_A)
-    
-    KS_T_B <- numeric(70)
+
+    KS_T_STAT <- numeric(70)
     
     for(ii in 1:70){
-      KS_T_B[ii] <- ks.test(z_std_T_B[obs_groups_final == final_groups[ii]],
+      KS_T_STAT[ii] <- ks.test(z_std_T_STAT[obs_groups_final == final_groups[ii]],
                           y = pnorm)$statistic
     }
-    
-    mean(KS_T_B)
-    sd(KS_T_B)  
-    
-    matrix_to_show <- t(round(cbind(c(mean(KS_T_B),mean(KS_T_A)),
-                                    c(sd(KS_T_B),sd(KS_T_A))),2))
+
+    matrix_to_show <- t(round(cbind(c(mean(KS_T_STAT),mean(KS_T_NS)),
+                                    c(sd(KS_T_STAT),sd(KS_T_NS))),3))
     
     rownames(matrix_to_show) <- c('mean', 'se')
-    colnames(matrix_to_show) <- c('M-STAT', 'M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT', 'M-T-NS')
     
     cat('KS statistic \n')
     print(matrix_to_show)
@@ -260,58 +238,52 @@ if(T){
   
   if(T){
     
-    Cov_prob_T_A <- numeric(70)
+    Cov_prob_T_NS <- numeric(70)
     
     for(ii in 1:70){
       
       index_groups <- obs_groups_final == final_groups[ii]
       
-      upper_bound <- Pred_T_A$systematic[index_groups] + 
-        Pred_T_A$stochastic[index_groups] +
-        qnorm(1 - 0.025) * Pred_T_A$sd.pred[index_groups]
+      upper_bound <- Pred_T_NS$systematic[index_groups] + 
+        Pred_T_NS$stochastic[index_groups] +
+        qnorm(1 - 0.025) * Pred_T_NS$sd.pred[index_groups]
       
-      lower_bound <- Pred_T_A$systematic[index_groups] + 
-        Pred_T_A$stochastic[index_groups] -
-        qnorm(1 - 0.025) * Pred_T_A$sd.pred[index_groups]
+      lower_bound <- Pred_T_NS$systematic[index_groups] + 
+        Pred_T_NS$stochastic[index_groups] -
+        qnorm(1 - 0.025) * Pred_T_NS$sd.pred[index_groups]
       
-      Cov_prob_T_A[ii] <-  1 - length(which(z_values_final[index_groups] < lower_bound |
+      Cov_prob_T_NS[ii] <-  1 - length(which(z_values_final[index_groups] < lower_bound |
                                             z_values_final[index_groups] > upper_bound  )) /
         length(z_values_final[index_groups])
       
     }
-    
-    mean(Cov_prob_T_A)
-    sd(Cov_prob_T_A)
-    
-    Cov_prob_T_B <- numeric(70)
+
+    Cov_prob_T_STAT <- numeric(70)
     
     for(ii in 1:70){
       
       index_groups <- obs_groups_final == final_groups[ii]
       
-      upper_bound <- Pred_T_B$systematic[index_groups] + 
-        Pred_T_B$stochastic[index_groups] +
-        qnorm(1 - 0.025) * Pred_T_B$sd.pred[index_groups]
+      upper_bound <- Pred_T_STAT$systematic[index_groups] + 
+        Pred_T_STAT$stochastic[index_groups] +
+        qnorm(1 - 0.025) * Pred_T_STAT$sd.pred[index_groups]
       
-      lower_bound <- Pred_T_B$systematic[index_groups] + 
-        Pred_T_B$stochastic[index_groups] -
-        qnorm(1 - 0.025) * Pred_T_B$sd.pred[index_groups]
+      lower_bound <- Pred_T_STAT$systematic[index_groups] + 
+        Pred_T_STAT$stochastic[index_groups] -
+        qnorm(1 - 0.025) * Pred_T_STAT$sd.pred[index_groups]
       
-      Cov_prob_T_B[ii] <-  1 - length(which(z_values_final[index_groups] < lower_bound |
+      Cov_prob_T_STAT[ii] <-  1 - length(which(z_values_final[index_groups] < lower_bound |
                                             z_values_final[index_groups] > upper_bound  )) /
         length(z_values_final[index_groups])
       
       
     }
-    
-    mean(Cov_prob_T_B)
-    sd(Cov_prob_T_B)
-    
-    matrix_to_show <- t(round(cbind(c(mean(Cov_prob_T_B),mean(Cov_prob_T_A)),
-                                    c(sd(Cov_prob_T_B),sd(Cov_prob_T_A))),2))
+
+    matrix_to_show <- t(round(cbind(c(mean(Cov_prob_T_STAT),mean(Cov_prob_T_NS)),
+                                    c(sd(Cov_prob_T_STAT),sd(Cov_prob_T_NS))),3))
     
     rownames(matrix_to_show) <- c('mean','se')
-    colnames(matrix_to_show) <- c('M-STAT','M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT','M-T-NS')
     
     
     cat('coverage probability\n')
@@ -324,29 +296,26 @@ if(T){
   
   if(T){
     
-    LS_T_A <- numeric(70)
+    LS_T_NS <- numeric(70)
     
     for(ii in 1:70){
       index_groups <- obs_groups_final == final_groups[ii]
       
-      LS_T_A[ii] <- mean(Logscore_T_A[index_groups])
+      LS_T_NS[ii] <- mean(Logscore_T_NS[index_groups])
     }
-    
-    mean(LS_T_A)
-    sd(LS_T_A)
-    
-    LS_T_B <- numeric(70)
+
+    LS_T_STAT <- numeric(70)
     
     for(ii in 1:70){
       index_groups <- obs_groups_final == final_groups[ii]
-      LS_T_B[ii] <-  mean(Logscore_T_B[index_groups])
+      LS_T_STAT[ii] <-  mean(Logscore_T_STAT[index_groups])
     }
     
-    matrix_to_show <- t(round(cbind(c(mean(LS_T_B), mean(LS_T_A)),
-                                    c(sd(LS_T_B), sd(LS_T_A))), 2))
+    matrix_to_show <- t(round(cbind(c(mean(LS_T_STAT), mean(LS_T_NS)),
+                                    c(sd(LS_T_STAT), sd(LS_T_NS))), 3))
     
     rownames(matrix_to_show) <- c('mean', 'se')
-    colnames(matrix_to_show) <- c('M-STAT', 'M-NS')
+    colnames(matrix_to_show) <- c('M-T-STAT', 'M-T-NS')
     
     cat('logscore\n')
     print(matrix_to_show)
@@ -356,8 +325,8 @@ if(T){
   
   # logliks
   
-  vector_to_show <- c(getLoglik(Model_T_A),getLoglik(Model_T_B))
-  names(vector_to_show) <- c('M-STAT','M-NS')
+  vector_to_show <- c(getLoglik(Model_T_STAT), getLoglik(Model_T_NS))
+  names(vector_to_show) <- c('M-T-STAT', 'M-T-NS')
   
   cat('Logliks\n')
   print(vector_to_show)
@@ -365,11 +334,12 @@ if(T){
   
   # times
   
-  vector_to_show <- round(c(Time_B[3]/60,Time_A/60),2)
-  names(vector_to_show) <- c('M-STAT','M-NS')
+  vector_to_show <- round(c(Time_T_STAT[3]/60, Time_T_NS/60), 2)
+  names(vector_to_show) <- c('M-T-STAT','M-T-NS')
   
   cat('system times\n')
   print(vector_to_show)
   cat('--------\n')
   
 }
+
